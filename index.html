@@ -337,21 +337,19 @@ section{padding:80px 20px;box-sizing:border-box;}
 }
 .section-sub{font-size:15px;color:var(--muted);margin-bottom:36px;font-weight:400;line-height:1.75;}
 
-/* ═══════════════════════════════════════════════════════════════
-   REVEAL — initial hidden state (GSAP animates these in)
-   ═══════════════════════════════════════════════════════════════ */
+
 .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
   opacity:0;
-  will-change:transform,opacity;
+  /* will-change only on elements about to animate — GSAP adds it */
 }
-.reveal{transform:translate3d(0,32px,0);}
-.reveal-left{transform:translate3d(-48px,0,0);}
-.reveal-right{transform:translate3d(48px,0,0);}
-.reveal-s{transform:translate3d(0,24px,0) scale(.96);}
-.reveal-pop{transform:translate3d(0,0,0) scale(.88);}
+.reveal{transform:translate3d(0,24px,0);}
+.reveal-left{transform:translate3d(-32px,0,0);}
+.reveal-right{transform:translate3d(32px,0,0);}
+.reveal-s{transform:translate3d(0,18px,0) scale(.97);}
+.reveal-pop{transform:translate3d(0,0,0) scale(.92);}
 @media(prefers-reduced-motion:reduce){
   .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
-    opacity:1!important;transform:none!important;will-change:auto!important;
+    opacity:1!important;transform:none!important;
   }
 }
 
@@ -2411,75 +2409,193 @@ window.addEventListener('resize',()=>{if(window.innerWidth>=768) closeMobileMenu
 // ── SCROLL REVEAL — GSAP ScrollTrigger ────────────────────────────
 gsap.registerPlugin(ScrollTrigger);
 
-// Respect prefers-reduced-motion
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = window.innerWidth < 768;
 
 if (!prefersReduced) {
-  // Helper: stagger index from d1–d8 classes
+
+  // ── Shared tween defaults (mobile gets shorter dist + faster dur)
+  const DY   = isMobile ? 18  : 26;   // vertical offset
+  const DX   = isMobile ? 22  : 34;   // horizontal offset
+  const DUR  = isMobile ? 0.55 : 0.75; // duration
+  const EASE = 'power2.out';           // single easing everywhere — no overshoot on mobile
+  // Trigger point: fire earlier on mobile so elements are never already past viewport
+  const START = isMobile ? 'top 95%' : 'top 86%';
+
+  // Helper: delay from d1–d8 class
   function getDelay(el) {
     for (let i = 8; i >= 1; i--) {
-      if (el.classList.contains('d' + i)) return i * 0.08;
+      if (el.classList.contains('d' + i)) return i * (isMobile ? 0.05 : 0.07);
     }
     return 0;
   }
 
-  // Config per class
-  const configs = [
-    {
-      sel: '.reveal',
-      from: { opacity: 0, y: 32 },
-      to:   { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out' }
-    },
-    {
-      sel: '.reveal-left',
-      from: { opacity: 0, x: -48 },
-      to:   { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }
-    },
-    {
-      sel: '.reveal-right',
-      from: { opacity: 0, x: 48 },
-      to:   { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }
-    },
-    {
-      sel: '.reveal-s',
-      from: { opacity: 0, y: 24, scale: 0.96 },
-      to:   { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power2.out' }
-    },
-    {
-      sel: '.reveal-pop',
-      from: { opacity: 0, scale: 0.88 },
-      to:   { opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.4)' }
-    }
-  ];
+  // ── Core animation function
+  function animateIn(el, fromVars, toVars, extraDelay = 0) {
+    gsap.set(el, { ...fromVars, willChange: 'transform, opacity' });
+    ScrollTrigger.create({
+      trigger: el,
+      start: START,
+      once: true,
+      onEnter: () => {
+        const delay = getDelay(el) + extraDelay;
+        gsap.to(el, {
+          ...toVars,
+          duration: DUR,
+          ease: EASE,
+          delay,
+          clearProps: 'willChange', // release GPU layer after animation
+        });
+      }
+    });
+  }
 
-  configs.forEach(({ sel, from, to }) => {
-    document.querySelectorAll(sel).forEach(el => {
-      // Set initial state via GSAP (overrides CSS)
-      gsap.set(el, from);
+  // ── 1. Standard reveal (fade up)
+  document.querySelectorAll('.reveal').forEach(el => {
+    animateIn(el,
+      { opacity: 0, y: DY },
+      { opacity: 1, y: 0 }
+    );
+  });
 
-      const delay = getDelay(el);
+  // ── 2. Reveal from left
+  document.querySelectorAll('.reveal-left').forEach(el => {
+    animateIn(el,
+      { opacity: 0, x: -DX },
+      { opacity: 1, x: 0 }
+    );
+  });
 
-      ScrollTrigger.create({
-        trigger: el,
-        start: 'top 88%',
-        once: true,
-        onEnter: () => {
-          gsap.to(el, { ...to, delay });
-        }
-      });
+  // ── 3. Reveal from right
+  document.querySelectorAll('.reveal-right').forEach(el => {
+    animateIn(el,
+      { opacity: 0, x: DX },
+      { opacity: 1, x: 0 }
+    );
+  });
+
+  // ── 4. Scale reveal (cards)
+  document.querySelectorAll('.reveal-s').forEach(el => {
+    animateIn(el,
+      { opacity: 0, y: isMobile ? 14 : 20, scale: 0.97 },
+      { opacity: 1, y: 0, scale: 1 }
+    );
+  });
+
+  // ── 5. Pop reveal (hero numbers)
+  document.querySelectorAll('.reveal-pop').forEach(el => {
+    gsap.set(el, { opacity: 0, scale: 0.92, willChange: 'transform, opacity' });
+    ScrollTrigger.create({
+      trigger: el,
+      start: START,
+      once: true,
+      onEnter: () => {
+        gsap.to(el, {
+          opacity: 1, scale: 1,
+          duration: isMobile ? 0.5 : 0.65,
+          ease: 'power3.out',
+          delay: getDelay(el),
+          clearProps: 'willChange',
+        });
+      }
     });
   });
 
-  // Stagger children inside grids for a wave effect
-  // (section headers with multiple children)
-  document.querySelectorAll('.reveal-left, .reveal-right').forEach(el => {
-    // already handled above — skip if it's a grid parent
-  });
+  // ── 6. Estrategia grid — stagger left-to-right wave
+  (function() {
+    const grid = document.getElementById('est-grid');
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.est-card'));
+    cards.forEach(c => gsap.set(c, { opacity: 0, x: -DX, willChange: 'transform, opacity' }));
+    ScrollTrigger.create({
+      trigger: grid,
+      start: isMobile ? 'top 92%' : 'top 82%',
+      once: true,
+      onEnter: () => {
+        gsap.to(cards, {
+          opacity: 1, x: 0,
+          duration: DUR,
+          ease: EASE,
+          stagger: isMobile ? 0.08 : 0.1,
+          clearProps: 'willChange',
+        });
+      }
+    });
+  })();
+
+  // ── 7. Legend rows — stagger left-to-right as user scrolls
+  (function() {
+    const legend = document.getElementById('cartera-legend');
+    if (!legend) return;
+    // Observe the legend container; stagger rows on enter
+    ScrollTrigger.create({
+      trigger: legend,
+      start: isMobile ? 'top 95%' : 'top 85%',
+      once: true,
+      onEnter: () => {
+        const rows = Array.from(legend.querySelectorAll('.legend-row'));
+        gsap.set(rows, { opacity: 0, x: -20 });
+        gsap.to(rows, {
+          opacity: 1, x: 0,
+          duration: 0.45,
+          ease: 'power2.out',
+          stagger: isMobile ? 0.035 : 0.045,
+          clearProps: 'willChange',
+        });
+      }
+    });
+  })();
+
+  // ── 8. Comité cards — stagger
+  (function() {
+    const grid = document.getElementById('comite-grid');
+    if (!grid) return;
+    setTimeout(() => {
+      const cards = Array.from(grid.querySelectorAll('.comite-card'));
+      cards.forEach(c => gsap.set(c, { opacity: 0, y: 16 }));
+      ScrollTrigger.create({
+        trigger: grid,
+        start: isMobile ? 'top 95%' : 'top 85%',
+        once: true,
+        onEnter: () => {
+          gsap.to(cards, {
+            opacity: 1, y: 0,
+            duration: 0.5,
+            ease: EASE,
+            stagger: isMobile ? 0.04 : 0.06,
+            clearProps: 'willChange',
+          });
+        }
+      });
+      ScrollTrigger.refresh();
+    }, 100);
+  })();
+
+  // ── 9. OPS cards — stagger
+  (function() {
+    const grid = document.querySelector('.ops-grid');
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.ops-card'));
+    cards.forEach(c => gsap.set(c, { opacity: 0, y: 14 }));
+    ScrollTrigger.create({
+      trigger: grid,
+      start: isMobile ? 'top 95%' : 'top 85%',
+      once: true,
+      onEnter: () => {
+        gsap.to(cards, {
+          opacity: 1, y: 0,
+          duration: 0.45,
+          ease: EASE,
+          stagger: 0.04,
+          clearProps: 'willChange',
+        });
+      }
+    });
+  })();
 
   ScrollTrigger.refresh();
-}
 
-// ── COUNT-UP ───────────────────────────────────────────────────────
+} // end if(!prefersReduced)
 function countUp(el,target,dur,dec,pre,suf){
   let start=null;
   const tick=ts=>{
@@ -2684,14 +2800,6 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
         <div class="comite-spec">${m.spec}</div>
       </div>
     </div>`).join('');
-  if(!prefersReduced){
-    c.querySelectorAll('.reveal-s').forEach(el=>{
-      const i=parseInt((el.className.match(/d(\d)/)||[,0])[1])||0;
-      gsap.set(el,{opacity:0,y:16,scale:0.98});
-      ScrollTrigger.create({trigger:el,start:'top 92%',once:true,
-        onEnter:()=>gsap.to(el,{opacity:1,y:0,scale:1,duration:.65,ease:'power2.out',delay:i*.06})});
-    });
-  }
 })();
 
 // ── ESTRATEGIA ─────────────────────────────────────────────────────
@@ -2704,14 +2812,6 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
       <div class="est-title">${e.title}</div>
       <p class="est-desc">${e.desc}</p>
     </div>`).join('');
-  if(!prefersReduced){
-    c.querySelectorAll('.reveal-left').forEach(el=>{
-      const i=parseInt((el.className.match(/d(\d)/)||[,0])[1])||0;
-      gsap.set(el,{opacity:0,x:-48});
-      ScrollTrigger.create({trigger:el,start:'top 88%',once:true,
-        onEnter:()=>gsap.to(el,{opacity:1,x:0,duration:.8,ease:'power3.out',delay:i*.08})});
-    });
-  }
 })();
 
 // ── OPS ────────────────────────────────────────────────────────────
@@ -2722,14 +2822,6 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
       <div class="ops-val" style="color:${o.color}">${o.val}</div>
       <div class="ops-lbl">${o.lbl}</div>
     </div>`).join('');
-  if(!prefersReduced){
-    c.querySelectorAll('.reveal-pop').forEach(el=>{
-      const i=parseInt((el.className.match(/d(\d)/)||[,0])[1])||0;
-      gsap.set(el,{opacity:0,scale:0.88});
-      ScrollTrigger.create({trigger:el,start:'top 92%',once:true,
-        onEnter:()=>gsap.to(el,{opacity:1,scale:1,duration:.7,ease:'back.out(1.4)',delay:i*.08})});
-    });
-  }
 })();
 
 // ── STAR FIELD CANVAS ─────────────────────────────────────────────
