@@ -1751,9 +1751,9 @@ img { decoding: async; }
   .nav-hamburger{ display:none; }
   .nav-links{ display:flex; justify-content:center; flex:1; }
   .nav-cta{ display:block; }
-  /* Mobile menu is hidden via transform/visibility — no display:none needed */
-  .nav-mobile-menu{ visibility:hidden!important; transform:translateX(100%)!important; }
-  .nav-overlay{ visibility:hidden!important; opacity:0!important; }
+  /* On desktop: force drawer closed - higher specificity than .is-open */
+  .nav-mobile-menu:not(.is-open){ visibility:hidden; transform:translateX(100%); }
+  .nav-overlay:not(.is-open){ visibility:hidden; opacity:0; pointer-events:none; }
 
   /* Hero */
   #hero{ padding:120px var(--sp-edge) 96px; }
@@ -3280,177 +3280,270 @@ $('contact-form').addEventListener('submit',e=>{
 });
 
 // ══════════════════════════════════════════════════════════════════
-// SCROLL ANIMATIONS — definitive clean version
+// SCROLL ANIMATIONS — mobile-first, robust
+// Key fixes vs common mobile failures:
+//   1. init() runs inside requestAnimationFrame after fonts.ready
+//      → correct element heights when calculating trigger positions
+//   2. ScrollTrigger.config({ ignoreMobileResize: true }) prevents
+//      iOS address-bar resize from invalidating all triggers
+//   3. "bottom bottom" start point — fires when element bottom
+//      reaches viewport bottom — works even on short viewports
+//   4. No gsap.set on opacity before triggers exist — elements
+//      only become invisible after ScrollTrigger is fully set up
+//   5. markers:false explicitly — never accidentally enables them
 // ══════════════════════════════════════════════════════════════════
 gsap.registerPlugin(ScrollTrigger);
 
+// Prevent iOS address-bar height changes from invalidating triggers
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// isMob() evaluated fresh each time — never cached at parse time
-function isMob() { return window.innerWidth < 768; }
-
-// Mobile needs more generous trigger (elements are taller, viewport shorter)
-function trigStart() { return isMob() ? 'top 99%' : 'top 90%'; }
 
 if (!prefersReduced) {
 
-  // Helper: create a simple scroll-triggered fade+slide animation
-  function revealEl(el, fromProps, toProps, triggerEl) {
-    if (!el) return;
-    gsap.set(el, { opacity: 0, ...fromProps });
-    gsap.to(el, {
-      opacity: 1, ...toProps,
-      scrollTrigger: { trigger: triggerEl || el, start: trigStart(), once: true }
+  // ── Defer ALL animation init until fonts are loaded ──────────────
+  // Fonts change element heights → wrong trigger offsets
+  const INIT_PROMISE = (document.fonts && document.fonts.ready)
+    ? document.fonts.ready
+    : Promise.resolve();
+
+  INIT_PROMISE.then(() => {
+    // Extra rAF to ensure browser has painted with correct font metrics
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => initAnimations());
     });
-  }
+  });
 
-  // ── 1. Section headers (label + title + sub) ──────────────────────
-  // Animate each element individually — never hide the parent wrapper
-  document.querySelectorAll('.section-label').forEach(el =>
-    revealEl(el, { y: 12 }, { y: 0, duration: 0.45, ease: 'power2.out' })
-  );
-  document.querySelectorAll('.section-title').forEach(el =>
-    revealEl(el, { y: isMob() ? 18 : 26 }, { y: 0, duration: isMob() ? 0.6 : 0.75, ease: 'power3.out' })
-  );
-  document.querySelectorAll('.section-sub').forEach(el =>
-    revealEl(el, { y: 10 }, { y: 0, duration: 0.5, ease: 'power2.out' })
-  );
+  function initAnimations() {
 
-  // ── 2. Track Record ───────────────────────────────────────────────
-  const trackHero = document.querySelector('#track .track-hero');
-  const trackMinis = document.querySelectorAll('#track .track-mini');
-  const compareCard = document.querySelector('#track .compare-card');
-  const feeCard = document.querySelector('#track .fee-card');
-  const barFills = document.querySelectorAll('#track .bar-fill');
+    const mob = window.innerWidth < 768;
 
-  if (trackHero) {
-    gsap.set(trackHero, { opacity: 0, y: 32 });
-    gsap.to(trackHero, {
-      opacity: 1, y: 0, duration: 0.85, ease: 'power3.out',
-      scrollTrigger: {
-        trigger: trackHero, start: trigStart(), once: true,
+    // "bottom bottom" = trigger fires when the BOTTOM of the element
+    // hits the BOTTOM of the viewport. Best for mobile where elements
+    // may be taller than the viewport.
+    // "top 95%" = fallback start for desktop (element top near bottom)
+    const ST_START = mob ? 'bottom bottom' : 'top 92%';
+
+    // ── Batch helper for staggered groups ──────────────────────────
+    // Uses ScrollTrigger.batch for better performance on long lists
+    function batchReveal(selector, fromVars, toVars, batchOpts) {
+      const els = document.querySelectorAll(selector);
+      if (!els.length) return;
+      els.forEach(el => gsap.set(el, { opacity: 0, ...fromVars }));
+      ScrollTrigger.batch(selector, {
+        start: ST_START,
+        once: true,
+        ...batchOpts,
+        onEnter: batch => gsap.to(batch, {
+          opacity: 1,
+          ...toVars,
+          stagger: toVars.stagger || 0,
+          overwrite: true,
+        }),
+      });
+    }
+
+    // ── Single element helper ───────────────────────────────────────
+    function revealOne(el, fromVars, toVars, triggerEl, startOverride) {
+      if (!el) return;
+      gsap.set(el, { opacity: 0, ...fromVars });
+      ScrollTrigger.create({
+        trigger: triggerEl || el,
+        start: startOverride || ST_START,
+        once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, ...toVars, overwrite: true }),
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // 1. SECTION HEADERS (label, title, sub)
+    // ══════════════════════════════════════════════════════════════
+    document.querySelectorAll('.section-label').forEach(el =>
+      revealOne(el, { y: 12 }, { y: 0, duration: 0.5, ease: 'power2.out' })
+    );
+    document.querySelectorAll('.section-title').forEach(el =>
+      revealOne(el, { y: mob ? 18 : 24 }, { y: 0, duration: mob ? 0.6 : 0.75, ease: 'power3.out' })
+    );
+    document.querySelectorAll('.section-sub').forEach(el =>
+      revealOne(el, { y: 10 }, { y: 0, duration: 0.5, ease: 'power2.out' })
+    );
+
+    // ══════════════════════════════════════════════════════════════
+    // 2. TRACK RECORD
+    // ══════════════════════════════════════════════════════════════
+    const trackHero = document.querySelector('#track .track-hero');
+    const barFills  = document.querySelectorAll('#track .bar-fill');
+
+    if (trackHero) {
+      gsap.set(trackHero, { opacity: 0, y: mob ? 24 : 36 });
+      ScrollTrigger.create({
+        trigger: trackHero,
+        start: ST_START,
+        once: true,
         onEnter: () => {
+          gsap.to(trackHero, { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out', overwrite: true });
           countUp($('track-usd'),   12.28, 1600, 2, '+', '%');
           countUp($('track-pesos'), 16.66, 1600, 2, '+', '%');
           countUp($('track-tbill'),  2.21, 1400, 2, '+', '%');
           barFills.forEach((b, i) =>
-            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 110 + 300));
-        }
-      }
-    });
-  }
-  trackMinis.forEach((el, i) => revealEl(el, { x: 24 }, { x: 0, duration: 0.6, ease: 'power3.out', delay: i * 0.08 }, trackHero));
-  if (compareCard) revealEl(compareCard, { y: 20 }, { y: 0, duration: 0.6, ease: 'power2.out' });
-  if (feeCard) revealEl(feeCard, { y: 20 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 110 + 300)
+          );
+        },
+      });
+    }
 
-  // ── 3. Cartera ────────────────────────────────────────────────────
-  const donutWrap = document.querySelector('#cartera .donut-wrap');
-  const legendRows = document.querySelectorAll('#cartera .legend-row');
-  const barFillsC  = document.querySelectorAll('#cartera .legend-bar-fill');
-  if (donutWrap) {
-    gsap.set(donutWrap, { opacity: 0, scale: 0.9 });
-    gsap.to(donutWrap, {
-      opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)',
-      scrollTrigger: {
-        trigger: donutWrap, start: trigStart(), once: true,
-        onEnter: () => barFillsC.forEach((b, i) =>
-          setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 40 + 400))
-      }
-    });
-  }
-  legendRows.forEach((el, i) => revealEl(el, { x: -20 }, { x: 0, duration: 0.45, ease: 'power3.out', delay: i * 0.04 }, donutWrap));
+    const trackMinis  = document.querySelectorAll('#track .track-mini');
+    const compareCard = document.querySelector('#track .compare-card');
+    const feeCard     = document.querySelector('#track .fee-card');
 
-  // ── 4. Equipo ─────────────────────────────────────────────────────
-  const equipoHero = document.querySelector('#equipo .equipo-hero');
-  const comiteGrid = document.querySelector('#equipo .comite-grid');
-  const comiteCards = document.querySelectorAll('#equipo .comite-card');
-  const equipoStats = document.querySelectorAll('#equipo .equipo-stat');
-  if (equipoHero) revealEl(equipoHero, { y: 28 }, { y: 0, duration: 0.8, ease: 'power3.out' });
-  equipoStats.forEach((el, i) => revealEl(el, { y: 16 }, { y: 0, duration: 0.5, ease: 'power2.out', delay: i * 0.07 }, equipoHero));
-  comiteCards.forEach((el, i) => {
-    gsap.set(el, { opacity: 0, y: 20, scale: 0.97 });
-    gsap.to(el, {
-      opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out', delay: i * 0.07,
-      scrollTrigger: { trigger: comiteGrid || el, start: trigStart(), once: true }
+    trackMinis.forEach((el, i) => revealOne(el, { x: 20 }, { x: 0, duration: 0.55, ease: 'power3.out', delay: i * 0.08 }, trackHero));
+    if (compareCard) revealOne(compareCard, { y: 18 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+    if (feeCard)     revealOne(feeCard,     { y: 18 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+
+    // ══════════════════════════════════════════════════════════════
+    // 3. CARTERA DONUT
+    // ══════════════════════════════════════════════════════════════
+    const donutWrap  = document.querySelector('#cartera .donut-wrap');
+    const legendRows = document.querySelectorAll('#cartera .legend-row');
+    const barFillsC  = document.querySelectorAll('#cartera .legend-bar-fill');
+
+    if (donutWrap) {
+      gsap.set(donutWrap, { opacity: 0, scale: 0.9 });
+      ScrollTrigger.create({
+        trigger: donutWrap,
+        start: ST_START,
+        once: true,
+        onEnter: () => {
+          gsap.to(donutWrap, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)', overwrite: true });
+          barFillsC.forEach((b, i) =>
+            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 40 + 400)
+          );
+        },
+      });
+    }
+    legendRows.forEach((el, i) => revealOne(el, { x: -16 }, { x: 0, duration: 0.45, ease: 'power3.out', delay: i * 0.04 }, donutWrap));
+
+    // ══════════════════════════════════════════════════════════════
+    // 4. EQUIPO
+    // ══════════════════════════════════════════════════════════════
+    const equipoHero  = document.querySelector('#equipo .equipo-hero');
+    const comiteGrid  = document.querySelector('#equipo .comite-grid');
+    const equipoStats = document.querySelectorAll('#equipo .equipo-stat');
+    const comiteCards = document.querySelectorAll('#equipo .comite-card');
+
+    if (equipoHero) revealOne(equipoHero, { y: 24 }, { y: 0, duration: 0.8, ease: 'power3.out' });
+    equipoStats.forEach((el, i) => revealOne(el, { y: 14 }, { y: 0, duration: 0.5, ease: 'power2.out', delay: i * 0.07 }, equipoHero));
+    comiteCards.forEach((el, i) => {
+      gsap.set(el, { opacity: 0, y: 18, scale: 0.97 });
+      ScrollTrigger.create({
+        trigger: comiteGrid || el,
+        start: ST_START,
+        once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out', delay: i * 0.07, overwrite: true }),
+      });
     });
+
+    // ══════════════════════════════════════════════════════════════
+    // 5. ESTRATEGIA
+    // ══════════════════════════════════════════════════════════════
+    const estGrid  = document.querySelector('#estrategia .est-grid');
+    const estCards = document.querySelectorAll('#estrategia .est-card');
+    estCards.forEach((el, i) => {
+      gsap.set(el, { opacity: 0, y: 22, scale: 0.95 });
+      ScrollTrigger.create({
+        trigger: estGrid || el,
+        start: ST_START,
+        once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power3.out', delay: i * 0.1, overwrite: true }),
+      });
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // 6. OPERATORIA
+    // ══════════════════════════════════════════════════════════════
+    const opsGrid  = document.querySelector('#operatoria .ops-grid');
+    const feeBox   = document.querySelector('#operatoria .fee-box');
+    document.querySelectorAll('#operatoria .ops-card').forEach((el, i) => {
+      gsap.set(el, { opacity: 0, scale: 0.88 });
+      ScrollTrigger.create({
+        trigger: opsGrid || el,
+        start: ST_START,
+        once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.4)', delay: i * 0.07, overwrite: true }),
+      });
+    });
+    if (feeBox) revealOne(feeBox, { y: 18 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+
+    // ══════════════════════════════════════════════════════════════
+    // 7. ACCESO (steps + store row)
+    // ══════════════════════════════════════════════════════════════
+    const stepsEl  = document.querySelector('#acceso .steps');
+    const storeRow = document.querySelector('#acceso .store-row');
+    document.querySelectorAll('#acceso .step-card').forEach((el, i) => {
+      gsap.set(el, { opacity: 0, x: mob ? -14 : -24 });
+      ScrollTrigger.create({
+        trigger: stepsEl || el,
+        start: ST_START,
+        once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: i * 0.12, overwrite: true }),
+      });
+    });
+    if (storeRow) revealOne(storeRow, { y: 16 }, { y: 0, duration: 0.6, ease: 'back.out(1.2)' });
+
+    // ══════════════════════════════════════════════════════════════
+    // 8. CONTACTO
+    // ══════════════════════════════════════════════════════════════
+    const contactCard = document.querySelector('#contacto .contact-card');
+    if (contactCard) revealOne(contactCard, { y: 24 }, { y: 0, duration: 0.8, ease: 'power3.out' });
+
+    // ══════════════════════════════════════════════════════════════
+    // 9. GRUPO IEB pills
+    // ══════════════════════════════════════════════════════════════
+    const pillsParent = document.querySelector('#grupo-ieb');
+    document.querySelectorAll('#grupo-ieb .ieb-logo-pill').forEach((el, i) => {
+      gsap.set(el, { opacity: 0, y: 12, scale: 0.94 });
+      ScrollTrigger.create({
+        trigger: pillsParent || el,
+        start: ST_START,
+        once: true,
+        onEnter: () => gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.2)', delay: i * 0.05, overwrite: true }),
+      });
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // 10. Generic .reveal classes (anything not covered above)
+    // ══════════════════════════════════════════════════════════════
+    const coveredSections = '#track,#cartera,#equipo,#estrategia,#operatoria,#acceso,#contacto,#grupo-ieb';
+    const coveredEls = new Set(document.querySelectorAll(
+      `${coveredSections} .section-label, ${coveredSections} .section-title, ${coveredSections} .section-sub`
+    ));
+
+    [
+      ['.reveal',       { y: 20 },      { y: 0, duration: 0.7, ease: 'power3.out' }],
+      ['.reveal-left',  { x: mob?-16:-24 }, { x: 0, duration: 0.65, ease: 'power3.out' }],
+      ['.reveal-right', { x: mob?16:24  }, { x: 0, duration: 0.65, ease: 'power3.out' }],
+      ['.reveal-s',     { y: 14, scale:0.97 }, { y: 0, scale:1, duration: 0.75, ease: 'power2.out' }],
+      ['.reveal-pop',   { scale:0.88 },  { scale:1, duration: 0.6, ease: 'back.out(1.3)' }],
+    ].forEach(([sel, from, to]) => {
+      document.querySelectorAll(sel).forEach(el => {
+        if (coveredEls.has(el)) return;
+        revealOne(el, from, to);
+      });
+    });
+
+    // Final refresh after all triggers are created
+    ScrollTrigger.refresh();
+
+  } // end initAnimations()
+
+  // ── Re-init on orientation change (portrait↔landscape) ─────────
+  window.addEventListener('orientationchange', () => {
+    // Wait for the new viewport to settle
+    setTimeout(() => ScrollTrigger.refresh(), 500);
   });
-
-  // ── 5. Estrategia ─────────────────────────────────────────────────
-  const estGrid = document.querySelector('#estrategia .est-grid');
-  document.querySelectorAll('#estrategia .est-card').forEach((el, i) => {
-    gsap.set(el, { opacity: 0, y: 24, scale: 0.95 });
-    gsap.to(el, {
-      opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power3.out', delay: i * 0.1,
-      scrollTrigger: { trigger: estGrid || el, start: trigStart(), once: true }
-    });
-  });
-
-  // ── 6. Operatoria ─────────────────────────────────────────────────
-  const opsGrid = document.querySelector('#operatoria .ops-grid');
-  document.querySelectorAll('#operatoria .ops-card').forEach((el, i) => {
-    gsap.set(el, { opacity: 0, scale: 0.88 });
-    gsap.to(el, {
-      opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.4)', delay: i * 0.07,
-      scrollTrigger: { trigger: opsGrid || el, start: trigStart(), once: true }
-    });
-  });
-  const feeBox = document.querySelector('#operatoria .fee-box');
-  if (feeBox) revealEl(feeBox, { y: 20 }, { y: 0, duration: 0.6, ease: 'power2.out' });
-
-  // ── 7. Acceso ─────────────────────────────────────────────────────
-  const stepsEl = document.querySelector('#acceso .steps');
-  document.querySelectorAll('#acceso .step-card').forEach((el, i) => {
-    gsap.set(el, { opacity: 0, x: isMob() ? -16 : -28 });
-    gsap.to(el, {
-      opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: i * 0.12,
-      scrollTrigger: { trigger: stepsEl || el, start: trigStart(), once: true }
-    });
-  });
-  const storeRow = document.querySelector('#acceso .store-row');
-  if (storeRow) revealEl(storeRow, { y: 18 }, { y: 0, duration: 0.6, ease: 'back.out(1.2)' });
-
-  // ── 8. Contacto ───────────────────────────────────────────────────
-  const contactCard = document.querySelector('#contacto .contact-card');
-  if (contactCard) revealEl(contactCard, { y: 28 }, { y: 0, duration: 0.8, ease: 'power3.out' });
-
-  // ── 9. Grupo IEB pills ────────────────────────────────────────────
-  const pillsParent = document.querySelector('#grupo-ieb');
-  document.querySelectorAll('#grupo-ieb .ieb-logo-pill').forEach((el, i) => {
-    gsap.set(el, { opacity: 0, y: 14, scale: 0.94 });
-    gsap.to(el, {
-      opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.2)', delay: i * 0.05,
-      scrollTrigger: { trigger: pillsParent || el, start: trigStart(), once: true }
-    });
-  });
-
-  // Initial refresh
-  ScrollTrigger.refresh();
 
 } // end if(!prefersReduced)
 
-// ── Final refresh after fonts + dynamic content ───────────────────
-// Fonts change element heights → wrong trigger positions.
-// document.fonts.ready fires after all font loads, then we refresh.
-if(!prefersReduced){
-  // rAF ensures DOM paint is done after dynamic grid injection
-  requestAnimationFrame(() => {
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
-        ScrollTrigger.refresh();
-      });
-    } else {
-      // Fallback: wait 400ms for fonts
-      setTimeout(() => ScrollTrigger.refresh(), 400);
-    }
-  });
-
-  // Extra safety refresh on resize (also fixes landscape↔portrait swap)
-  let _refreshTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(_refreshTimer);
-    _refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 250);
-  }, { passive: true });
-}
 </script>
 
 
