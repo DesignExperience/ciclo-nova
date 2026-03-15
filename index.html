@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<!-- saved from url=(0059)file:///C:/Users/desig/Downloads/ciclo-nova-redesign_3.html -->
-<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="es"><head><meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ciclo Nova · FCI · Grupo IEB</title>
-<link href="./ciclo nova_files/css2" rel="stylesheet">
+
+<!-- Preconnect for faster font loading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Non-blocking font load: media=print trick swaps to all after load -->
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400,300&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript>
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400,300&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
+</noscript>
+
 <style>
 
 /* ═══════════════════════════════════════════════════════════════
@@ -28,14 +40,14 @@
   --green:       #22D3A5;
   --green-glow:  rgba(34,211,165,0.28);
 
-  --text:        #F2F0FF;
-  --sub:         #B8B4D0;
-  --muted:       #6A6485;
+  --text:        #F0EEFF;
+  --sub:         #C4C0DC;
+  --muted:       #8A85A8;
   --dimmer:      rgba(240,238,255,0.10);
 
-  --font-display: 'Syne', system-ui, sans-serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
-  --font-mono:    'Montserrat', system-ui, sans-serif;
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body:    'Satoshi', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', system-ui, monospace;
 
   --radius-sm:  10px;
   --radius-md:  18px;
@@ -53,7 +65,12 @@ body{
   background:var(--bg);
   color:var(--text);
   overflow-x:hidden;
-  line-height:1.6;
+  line-height:1.7;
+  /* Improve text rendering on all screens */
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  font-feature-settings:'kern' 1,'liga' 1,'tnum' 1,'cv05' 1;
 }
 a{text-decoration:none;color:inherit}
 button{cursor:pointer;font-family:var(--font-body);border:none;background:none}
@@ -81,7 +98,11 @@ body::before{
 #progress{
   position:fixed;top:0;left:0;height:2px;width:0%;
   background:linear-gradient(90deg,var(--blue),var(--purple),var(--green));
-  z-index:500;transition:width .08s linear;
+  z-index:500;
+  /* Use transform instead of width for smoother updates — but width
+     is needed for the gradient effect, so at least promote to own layer */
+  will-change:width;
+  transform:translateZ(0);
   box-shadow:0 0 10px var(--blue-glow);
 }
 
@@ -126,7 +147,7 @@ nav.scrolled{
 }
 .nav-logo-text{display:flex;flex-direction:column;gap:1px;}
 .nav-logo-name{
-  font-family:var(--font-display);font-weight:800;font-size:15px;
+  font-family:var(--font-display);font-weight:700;font-size:15px;
   letter-spacing:-.4px;color:var(--text);line-height:1;
 }
 .nav-logo-sup{
@@ -144,7 +165,7 @@ nav.scrolled{
   padding:7px 13px;border-radius:7px;
   color:var(--muted);font-size:12px;font-weight:600;
   letter-spacing:.2px;transition:color .18s,background .18s;
-  font-family:var(--font-mono);white-space:nowrap;
+  font-family:var(--font-mono);white-space:nowrap;font-size:11px;
 }
 .nav-link:hover{color:var(--text);background:rgba(255,255,255,.05);}
 .nav-link.active{color:var(--blue);background:rgba(79,134,247,.08);}
@@ -161,13 +182,7 @@ nav.scrolled{
 }
 .nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--blue-glow);}
 
-/* Global descender fix for display font */
-[style*="font-family"],
-.hero-wordmark,.section-title,.track-main-num,.est-num,
-.equipo-name,.comite-name,.est-title,.ops-val,.fee-box-title,
-.hsm-val,.track-mini-val,.bar-val,.legend-pct{
-  overflow:visible;
-}
+/* Bricolage Grotesque has correct descender metrics — no overflow fix needed */
 
 #hero{
   position:relative;min-height:100vh;
@@ -205,14 +220,12 @@ nav.scrolled{
 
 /* ── Wordmark ── */
 .hero-wordmark{
-  font-family:var(--font-display);font-weight:800;
-  font-size:clamp(52px,15vw,80px);
-  letter-spacing:-3px;
-  line-height:1.2;
-  padding-bottom:.15em;
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(40px,11vw,68px);
+  letter-spacing:-1px;
+  line-height:1.1;
   color:var(--text);margin-bottom:12px;
   position:relative;z-index:2;
-  overflow:visible;
   display:block;
   opacity:0;animation:fadeUp .9s .1s cubic-bezier(.22,1,.36,1) forwards;
   text-shadow:0 0 100px rgba(123,82,255,.18),0 0 200px rgba(79,134,247,.1);
@@ -221,7 +234,8 @@ nav.scrolled{
 /* ── Tagline ── */
 .hero-tagline{
   font-size:15px;
-  color:var(--sub);font-weight:400;line-height:1.6;
+  color:var(--sub);font-weight:400;line-height:1.75;
+  letter-spacing:.01em;
   margin-bottom:28px;position:relative;z-index:2;
   opacity:0;animation:fadeUp .8s .28s cubic-bezier(.22,1,.36,1) forwards;
 }
@@ -268,7 +282,7 @@ nav.scrolled{
   transition:background .2s;cursor:default;
 }
 .hsm-item:hover{background:rgba(79,134,247,.06);}
-.hsm-val{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-1px;line-height:1.2;padding-bottom:.08em;}
+.hsm-val{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-1px;line-height:1.2;padding-bottom:.08em;}
 .hsm-lbl{font-size:9px;font-family:var(--font-mono);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
 .hsm-sep{width:1px;height:36px;background:var(--border);flex-shrink:0;}
 
@@ -296,8 +310,8 @@ nav.scrolled{
 .ticker-item{
   display:inline-flex;align-items:center;gap:0;
   padding:0 24px;
-  font-size:10px;font-family:var(--font-mono);font-weight:700;
-  letter-spacing:3px;text-transform:uppercase;
+  font-size:9.5px;font-family:var(--font-mono);font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;
 }
 .ticker-sep{width:3px;height:3px;border-radius:50%;background:var(--border);margin-left:24px;}
 
@@ -320,27 +334,21 @@ section{padding:80px 20px;box-sizing:border-box;}
   letter-spacing:3.5px;text-transform:uppercase;color:var(--blue);
 }
 .section-title{
-  font-family:var(--font-display);font-weight:800;
-  font-size:clamp(34px,7vw,52px);
-  letter-spacing:-2px;
-  line-height:1.05;
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(26px,5.5vw,42px);
+  letter-spacing:-.5px;
+  line-height:1.08;
   margin-bottom:12px;
-  padding-bottom:.15em;
-  overflow:visible;
 }
 .section-title .accent{
   background:linear-gradient(120deg,var(--blue),var(--purple));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   display:inline-block;
-  padding-bottom:.18em;
   line-height:inherit;
 }
 .section-title .green{color:var(--green);}
-.section-title br + .accent,
-.section-title .accent:last-child{
-  padding-bottom:.18em;
-}
-.section-sub{font-size:15px;color:var(--muted);margin-bottom:36px;font-weight:400;line-height:1.75;}
+
+.section-sub{font-size:15px;color:var(--sub);margin-bottom:36px;font-weight:400;line-height:1.8;letter-spacing:.01em;}
 
 /* ═══════════════════════════════════════════════════════════════
    REVEAL — initial hidden state (GSAP animates these in)
@@ -450,10 +458,9 @@ section{padding:80px 20px;box-sizing:border-box;}
   border-radius:2px;
 }
 .track-main-num{
-  font-family:var(--font-display);font-weight:800;
-  font-size:clamp(72px,11vw,112px);
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(52px,9vw,88px);
   letter-spacing:-5px;line-height:.95;
-  overflow:visible;
   color:var(--green);
   text-shadow:0 0 80px rgba(34,211,165,.45),0 0 200px rgba(34,211,165,.18);
   display:block;
@@ -494,7 +501,7 @@ section{padding:80px 20px;box-sizing:border-box;}
   margin-bottom:12px;line-height:1.4;
 }
 .track-mini-val{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:clamp(24px,3vw,36px);
   letter-spacing:-1.5px;line-height:1;
 }
@@ -517,7 +524,7 @@ section{padding:80px 20px;box-sizing:border-box;}
 }
 .bar-name{font-size:13px;color:var(--sub);font-weight:500;}
 .bar-val{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:15px;letter-spacing:-.5px;
 }
 .bar-track{
@@ -580,7 +587,7 @@ section{padding:80px 20px;box-sizing:border-box;}
   width:100%;text-align:center;
 }
 .donut-header-title{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:clamp(14px,2vw,17px);letter-spacing:-.3px;
   color:var(--text);line-height:1.2;margin-bottom:4px;
 }
@@ -633,7 +640,7 @@ svg.has-selection .donut-seg.active{
   width:130px;
 }
 .donut-center-val{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:28px;letter-spacing:-1.5px;
   color:var(--text);line-height:1;
   transition:color .25s, font-size .2s;
@@ -682,7 +689,7 @@ svg.has-selection .donut-seg.active{
   color:var(--muted);margin-bottom:6px;line-height:1.3;
 }
 .donut-kpi-val{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:clamp(18px,2.5vw,22px);letter-spacing:-1px;
   line-height:1;
 }
@@ -719,6 +726,7 @@ svg.has-selection .donut-seg.active{
 .legend-row.active .legend-dot{ transform:scale(1.4); }
 .legend-name{
   font-size:13px;color:var(--sub);flex:1;font-weight:500;
+  letter-spacing:.01em;
   transition:color .18s;
 }
 .legend-row.active .legend-name{ color:var(--text);font-weight:600; }
@@ -733,7 +741,7 @@ svg.has-selection .donut-seg.active{
 }
 .legend-pct{
   font-family:var(--font-display);font-size:12px;
-  font-weight:800;min-width:38px;text-align:right;
+  font-weight:700;min-width:38px;text-align:right;
   letter-spacing:-.3px;
 }
 
@@ -791,20 +799,21 @@ svg.has-selection .donut-seg.active{
   color:var(--blue);margin-bottom:10px;
 }
 .equipo-name{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:clamp(22px,3.5vw,32px);
   letter-spacing:-1.5px;margin-bottom:14px;
   line-height:1.1;
 }
 .equipo-bio{
-  font-size:13px;color:var(--sub);
-  line-height:1.85;
+  font-size:14px;color:var(--sub);
+  line-height:1.9;
+  letter-spacing:.01em;
   max-width:100%;/* fills available space */
 }
 .equipo-quote{
   margin-top:20px;padding:18px 22px;border-radius:var(--radius-md);
   background:rgba(255,255,255,.03);border-left:2px solid var(--blue);
-  font-size:13px;color:var(--sub);line-height:1.8;font-style:italic;
+  font-size:14px;color:var(--sub);line-height:1.85;font-style:italic;letter-spacing:.01em;
 }
 /* stat row below the bio */
 .equipo-stats{
@@ -819,7 +828,7 @@ svg.has-selection .donut-seg.active{
   flex:1;min-width:120px;
 }
 .equipo-stat-val{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:clamp(18px,2.5vw,24px);
   letter-spacing:-1px;color:var(--text);
   line-height:1;
@@ -894,7 +903,7 @@ svg.has-selection .donut-seg.active{
   display:flex;flex-direction:column;gap:3px;
 }
 .comite-name{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:13px;letter-spacing:-.1px;
   line-height:1.2;overflow:visible;
   color:var(--text);
@@ -908,8 +917,9 @@ svg.has-selection .donut-seg.active{
 }
 /* spec below name/role */
 .comite-spec{
-  font-size:11px;color:var(--muted);
-  line-height:1.5;
+  font-size:12px;color:var(--sub);
+  line-height:1.6;
+  letter-spacing:.01em;
   text-align:left;
   max-width:100%;
   padding-left:0;
@@ -943,8 +953,8 @@ svg.has-selection .donut-seg.active{
 .est-card:hover::before{opacity:1;}
 .est-num{
   position:absolute;top:14px;right:18px;
-  font-family:var(--font-display);font-size:64px;font-weight:800;
-  color:var(--blue);opacity:.035;letter-spacing:-4px;line-height:1;
+  font-family:var(--font-display);font-size:64px;font-weight:700;
+  color:var(--blue);opacity:.035;letter-spacing:-3px;line-height:1;
 }
 /* ── Glassmorphism icon ── */
 .est-icon{
@@ -967,8 +977,8 @@ svg.has-selection .donut-seg.active{
   width:24px;height:24px;
   position:relative;z-index:1;
 }
-.est-title{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.6px;margin-bottom:10px;color:var(--text);}
-.est-desc{font-size:13px;color:var(--muted);line-height:1.85;}
+.est-title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.6px;margin-bottom:10px;color:var(--text);}
+.est-desc{font-size:14px;color:var(--sub);line-height:1.85;letter-spacing:.01em;}
 
 /* ═══════════════════════════════════════════════════════════════
    OPERATORIA
@@ -981,7 +991,7 @@ svg.has-selection .donut-seg.active{
   transition:transform .25s,border-color .25s,background .25s;
 }
 .ops-card:hover{transform:translateY(-4px);border-color:var(--border2);background:rgba(79,134,247,.04);}
-.ops-val{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-1px;margin-bottom:7px;}
+.ops-val{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-1px;margin-bottom:7px;}
 .ops-lbl{font-size:9px;font-family:var(--font-mono);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);line-height:1.6;}
 
 .fee-box{
@@ -990,8 +1000,8 @@ svg.has-selection .donut-seg.active{
   display:flex;flex-direction:column;align-items:flex-start;gap:10px;
 }
 .fee-box-icon{font-size:32px;flex-shrink:0;margin-top:2px;}
-.fee-box-title{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:-.5px;margin-bottom:8px;}
-.fee-box-text{font-size:13px;color:var(--sub);line-height:1.85;}
+.fee-box-title{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.5px;margin-bottom:8px;}
+.fee-box-text{font-size:14px;color:var(--sub);line-height:1.85;letter-spacing:.01em;}
 .fee-box-legal{font-size:11px;color:var(--muted);margin-top:12px;font-family:var(--font-mono);}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1010,10 +1020,10 @@ svg.has-selection .donut-seg.active{
   width:36px;height:36px;border-radius:50%;flex-shrink:0;
   background:linear-gradient(135deg,var(--blue),var(--purple));
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:800;font-size:13px;color:#fff;
+  font-family:var(--font-display);font-weight:700;font-size:13px;color:#fff;
   box-shadow:0 4px 14px var(--blue-glow);
 }
-.step-text{font-size:14px;font-weight:500;color:var(--sub);}
+.step-text{font-size:14px;font-weight:500;color:var(--sub);line-height:1.6;letter-spacing:.01em;}
 
 .store-row{
   display:flex;flex-direction:row;flex-wrap:wrap;
@@ -1036,6 +1046,7 @@ svg.has-selection .donut-seg.active{
   background:rgba(79,134,247,.06);
 }
 .store-btn-icon{font-size:22px;}
+.store-btn-icon-svg,.footer-store-btn-icon-svg{flex-shrink:0;display:block;}
 .store-btn-sub{font-size:10px;color:var(--muted);font-family:var(--font-mono);font-weight:600;}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1055,7 +1066,7 @@ svg.has-selection .donut-seg.active{
   color:var(--sub);
   background:rgba(79,134,247,.05);
 }
-.ieb-bold{color:var(--text);font-weight:800;font-family:var(--font-display);letter-spacing:-.3px;}
+.ieb-bold{color:var(--text);font-weight:700;font-family:var(--font-display);letter-spacing:-.3px;}
 
 /* ═══════════════════════════════════════════════════════════════
    CONTACTO
@@ -1103,7 +1114,7 @@ svg.has-selection .donut-seg.active{
 .btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 32px var(--blue-glow);}
 .form-success{display:none;text-align:center;padding:32px 0;}
 .form-success-icon{font-size:52px;margin-bottom:16px;}
-.form-success h3{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-1px;margin-bottom:8px;}
+.form-success h3{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-1px;margin-bottom:8px;}
 .form-success p{font-size:14px;color:var(--muted);}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1134,12 +1145,13 @@ footer{
 }
 .footer-logo-mark svg{width:100%;height:100%;display:block;}
 .footer-logo-name{
-  font-family:var(--font-display);font-weight:800;
+  font-family:var(--font-display);font-weight:700;
   font-size:20px;letter-spacing:-.6px;color:var(--text);
 }
 .footer-tagline{
-  font-size:13px;color:rgba(240,238,255,.35);
-  line-height:1.7;max-width:280px;margin-bottom:0;
+  font-size:13px;color:rgba(240,238,255,.45);
+  line-height:1.75;max-width:280px;margin-bottom:0;
+  letter-spacing:.01em;
 }
 /* Nav columns */
 .footer-cols{
@@ -1195,10 +1207,11 @@ footer{
   display:flex;flex-direction:column;gap:10px;
 }
 .footer-legal{
-  font-size:10px;line-height:1.85;
-  color:rgba(240,238,255,.18);
+  font-size:10px;line-height:1.9;
+  color:rgba(240,238,255,.25);
   max-width:860px;
   font-family:var(--font-mono);
+  letter-spacing:.02em;
 }
 .footer-copy{
   font-size:10px;color:rgba(240,238,255,.2);
@@ -1408,8 +1421,14 @@ footer{ padding:44px var(--sp-edge) 28px; }
 .footer-bottom{ flex-direction:column; align-items:flex-start; gap:8px; padding-top:20px; }
 .footer-copy{ font-size:9px; }
 
-/* On mobile: reduce or disable heavy backdrop-filter to prevent scroll jank */
+/* Force async decode on all images — avoids blocking main thread on mobile */
+img { decoding: async; }
+/* Disable smooth scroll on mobile — it causes compositor jank with GSAP */
 @media(max-width:767px){
+  html { scroll-behavior: auto; }
+}
+
+/* On mobile: reduce or disable heavy backdrop-filter to prevent scroll jank */@media(max-width:767px){
   nav.scrolled{
     backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
@@ -1718,12 +1737,12 @@ footer{ padding:44px var(--sp-edge) 28px; }
     <!-- Store buttons -->
     <div class="hero-stores" style="opacity:0;animation:fadeUp .8s .44s cubic-bezier(.22,1,.36,1) forwards">
       <a href="https://play.google.com/store/apps/details?id=ar.com.invertirenbolsa.iebmas&amp;hl=es_AR" class="store-pill" target="_blank">
-        <!-- Google Play icon -->
-        <svg class="store-pill-icon" viewBox="0 0 24 24" fill="none">
-          <path d="M3.18 23.5c.3.17.65.18.97.04L15.5 12 3.18.46C2.86.32 2.5.33 2.2.5A1.3 1.3 0 0 0 1.5 1.67v20.67c0 .5.27.97.68 1.17Z" fill="white" opacity=".9"></path>
-          <path d="M19.5 9.17 16.8 7.63 13.6 12l3.2 4.37 2.7-1.54A2.3 2.3 0 0 0 21 13a2.3 2.3 0 0 0-1.5-1.83Z" fill="white" opacity=".9"></path>
-          <path d="m15.5 12-12.32 11 12.32-4.63L18.8 14.37Z" fill="white" opacity=".6"></path>
-          <path d="M3.18.46 15.5 12 18.8 9.63 6.5 5Z" fill="white" opacity=".6"></path>
+        <!-- Google Play icon — 4 colores oficiales -->
+        <svg class="store-pill-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4.07 23.27 14.5 12 4.07.73C3.73.9 3.5 1.26 3.5 1.67v20.66c0 .41.23.77.57.94Z" fill="#4285F4"/>
+          <path d="M4.07.73 14.5 12l3.56-3.56L6.45.17C5.57-.3 4.5.14 4.07.73Z" fill="#FBBC04"/>
+          <path d="M4.07 23.27 14.5 12l3.56 3.56-11.61 6.27c-.88.47-1.95.03-2.38-.56Z" fill="#34A853"/>
+          <path d="M20.5 10.83 18.06 8.44 14.5 12l3.56 3.56L20.5 13.2a1.29 1.29 0 0 0 0-2.37Z" fill="#EA4335"/>
         </svg>
         <div class="store-pill-text">
           <span class="store-pill-sub">GET IT ON</span>
@@ -2115,11 +2134,18 @@ footer{ padding:44px var(--sp-edge) 28px; }
     </div>
     <div class="store-row reveal d4">
       <a href="https://play.google.com/store/apps/details?id=ar.com.invertirenbolsa.iebmas&amp;hl=es_AR" class="store-btn" target="_blank">
-        <span class="store-btn-icon">▶</span>
+        <svg class="store-btn-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;flex-shrink:0">
+          <path d="M4.07 23.27 14.5 12 4.07.73C3.73.9 3.5 1.26 3.5 1.67v20.66c0 .41.23.77.57.94Z" fill="#4285F4"/>
+          <path d="M4.07.73 14.5 12l3.56-3.56L6.45.17C5.57-.3 4.5.14 4.07.73Z" fill="#FBBC04"/>
+          <path d="M4.07 23.27 14.5 12l3.56 3.56-11.61 6.27c-.88.47-1.95.03-2.38-.56Z" fill="#34A853"/>
+          <path d="M20.5 10.83 18.06 8.44 14.5 12l3.56 3.56L20.5 13.2a1.29 1.29 0 0 0 0-2.37Z" fill="#EA4335"/>
+        </svg>
         <div><div class="store-btn-sub">Disponible en</div>Google Play</div>
       </a>
       <a href="https://apps.apple.com/ar/app/ieb-tu-app-de-inversiones/id1669713604" class="store-btn" target="_blank">
-        <span class="store-btn-icon">🍎</span>
+        <svg class="store-btn-icon-svg" viewBox="0 0 24 24" fill="white" style="width:22px;height:22px;flex-shrink:0">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
+        </svg>
         <div><div class="store-btn-sub">Disponible en</div>App Store</div>
       </a>
     </div>
@@ -2179,9 +2205,9 @@ footer{ padding:44px var(--sp-edge) 28px; }
       </p>
       <!-- Speaker card -->
       <div style="display:inline-flex;align-items:center;gap:14px;background:rgba(123,82,255,.12);border:1px solid rgba(123,82,255,.25);border-radius:14px;padding:14px 24px;">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px;color:#fff;">JI</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:13px;color:#fff;">JI</div>
         <div style="text-align:left;">
-          <div style="font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:-.3px;color:var(--text);">Juan Ignacio Abuchdid</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:-.3px;color:var(--text);">Juan Ignacio Abuchdid</div>
           <div style="font-size:11px;color:var(--purple-lt);font-family:var(--font-mono);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;">Presidente de Grupo IEB</div>
         </div>
       </div>
@@ -2192,7 +2218,7 @@ footer{ padding:44px var(--sp-edge) 28px; }
 
     <!-- Brand / ecosystem -->
     <div class="reveal" style="text-align:center;margin-bottom:32px;">
-      <div style="font-family:var(--font-display);font-weight:800;font-size:clamp(28px,5vw,48px);letter-spacing:-2px;color:var(--text);margin-bottom:8px;">Ciclo Nova</div>
+      <div style="font-family:var(--font-display);font-weight:700;font-size:clamp(28px,5vw,48px);letter-spacing:-2px;color:var(--text);margin-bottom:8px;">Ciclo Nova</div>
       <div style="font-size:11px;font-family:var(--font-mono);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);">Un fondo de Grupo IEB</div>
     </div>
 
@@ -2267,14 +2293,21 @@ footer{ padding:44px var(--sp-edge) 28px; }
       <div class="footer-right">
         <div class="footer-store-badges">
           <a href="https://play.google.com/store/apps/details?id=ar.com.invertirenbolsa.iebmas&hl=es_AR" target="_blank" class="footer-store-btn">
-            <span class="footer-store-btn-icon">▶</span>
+            <svg class="footer-store-btn-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;flex-shrink:0">
+          <path d="M4.07 23.27 14.5 12 4.07.73C3.73.9 3.5 1.26 3.5 1.67v20.66c0 .41.23.77.57.94Z" fill="#4285F4"/>
+          <path d="M4.07.73 14.5 12l3.56-3.56L6.45.17C5.57-.3 4.5.14 4.07.73Z" fill="#FBBC04"/>
+          <path d="M4.07 23.27 14.5 12l3.56 3.56-11.61 6.27c-.88.47-1.95.03-2.38-.56Z" fill="#34A853"/>
+          <path d="M20.5 10.83 18.06 8.44 14.5 12l3.56 3.56L20.5 13.2a1.29 1.29 0 0 0 0-2.37Z" fill="#EA4335"/>
+        </svg>
             <div class="footer-store-btn-text">
               <span class="footer-store-sub">Disponible en</span>
               <span class="footer-store-name">Google Play</span>
             </div>
           </a>
           <a href="https://apps.apple.com/ar/app/ieb-tu-app-de-inversiones/id1669713604" target="_blank" class="footer-store-btn">
-            <span class="footer-store-btn-icon">🍎</span>
+            <svg class="footer-store-btn-icon-svg" viewBox="0 0 24 24" fill="white" style="width:22px;height:22px;flex-shrink:0">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
+        </svg>
             <div class="footer-store-btn-text">
               <span class="footer-store-sub">Disponible en</span>
               <span class="footer-store-name">App Store</span>
@@ -2405,15 +2438,26 @@ const $ = id => document.getElementById(id);
 const eOutQ = t => 1 - Math.pow(1-t,4);
 function scrollTo(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
 
-// ── PROGRESS BAR ───────────────────────────────────────────────────
-window.addEventListener('scroll', () => {
-  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
-  $('progress').style.width = (pct*100)+'%';
-},{passive:true});
-
 // ── NAV ────────────────────────────────────────────────────────────
 const nav = $('main-nav');
-window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>40);},{passive:true});
+
+// ── PROGRESS BAR + NAV SCROLL — throttled via rAF ─────────────────
+// Merging into ONE scroll listener + rAF throttle eliminates jank
+let _scrollTicking = false;
+function onScroll(){
+  if(_scrollTicking) return;
+  _scrollTicking = true;
+  requestAnimationFrame(()=>{
+    const scrollY = window.scrollY;
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    if(maxScroll > 0){
+      $('progress').style.width = (scrollY / maxScroll * 100)+'%';
+    }
+    nav.classList.toggle('scrolled', scrollY > 40);
+    _scrollTicking = false;
+  });
+}
+window.addEventListener('scroll', onScroll, {passive:true});
 
 const navLinks = document.querySelectorAll('.nav-link[data-target]');
 const secIds = [...navLinks].map(b=>b.dataset.target);
