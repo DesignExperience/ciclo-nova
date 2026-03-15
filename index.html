@@ -351,15 +351,74 @@ section{padding:80px 20px;box-sizing:border-box;}
 .section-sub{font-size:15px;color:var(--sub);margin-bottom:36px;font-weight:400;line-height:1.8;letter-spacing:.01em;}
 
 /* ═══════════════════════════════════════════════════════════════
-   REVEAL — GSAP controla estado inicial via gsap.set()
-   Solo opacity:0 como fallback CSS; los transforms los pone GSAP
+   REVEAL — CSS sets opacity:0 immediately on page load.
+   This prevents the flash where content appears, then vanishes
+   when GSAP's gsap.set() runs after fonts.ready (up to 2s later).
+   GSAP only handles the entrance animation, not the hide.
+   The .js-ready class is added to <html> before animations init,
+   allowing a no-JS fallback where everything stays visible.
    ═══════════════════════════════════════════════════════════════ */
-.reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
-  /* opacity set to 0 by GSAP at runtime — visible by default for no-JS/slow-JS */
+
+/* Hide immediately — before any JS runs */
+.section-title,
+.section-label,
+.section-sub,
+.reveal,
+.reveal-left,
+.reveal-right,
+.reveal-s,
+.reveal-pop {
+  opacity: 0;
 }
+
+/* No-JS fallback: if JS never runs, show everything */
+.no-js .section-title,
+.no-js .section-label,
+.no-js .section-sub,
+.no-js .reveal,
+.no-js .reveal-left,
+.no-js .reveal-right,
+.no-js .reveal-s,
+.no-js .reveal-pop {
+  opacity: 1 !important;
+}
+
 @media(prefers-reduced-motion:reduce){
+  .section-title,.section-label,.section-sub,
   .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
     opacity:1!important;transform:none!important;will-change:auto!important;
+  }
+}
+
+/* ── Section-specific animated elements: hidden by CSS immediately ── */
+/* These are NOT .reveal classes but still get animated by GSAP.      */
+/* Same principle: hide now, GSAP reveals on scroll.                   */
+#track .track-hero,
+#track .track-mini,
+#track .compare-card,
+#track .fee-card,
+#cartera .donut-wrap,
+#cartera .legend-row,
+#equipo .equipo-hero,
+#equipo .equipo-stat,
+#equipo .comite-card,
+#estrategia .est-card,
+#operatoria .ops-card,
+#operatoria .fee-box,
+#acceso .step-card,
+#acceso .store-row,
+#contacto .contact-card,
+#grupo-ieb .ieb-logo-pill {
+  opacity: 0;
+}
+@media(prefers-reduced-motion:reduce){
+  #track .track-hero, #track .track-mini, #track .compare-card, #track .fee-card,
+  #cartera .donut-wrap, #cartera .legend-row,
+  #equipo .equipo-hero, #equipo .equipo-stat, #equipo .comite-card,
+  #estrategia .est-card, #operatoria .ops-card, #operatoria .fee-box,
+  #acceso .step-card, #acceso .store-row,
+  #contacto .contact-card, #grupo-ieb .ieb-logo-pill {
+    opacity:1!important;
   }
 }
 
@@ -3280,267 +3339,220 @@ $('contact-form').addEventListener('submit',e=>{
 });
 
 // ══════════════════════════════════════════════════════════════════
-// SCROLL ANIMATIONS — mobile-first, robust
-// Key fixes vs common mobile failures:
-//   1. init() runs inside requestAnimationFrame after fonts.ready
-//      → correct element heights when calculating trigger positions
-//   2. ScrollTrigger.config({ ignoreMobileResize: true }) prevents
-//      iOS address-bar resize from invalidating all triggers
-//   3. "bottom bottom" start point — fires when element bottom
-//      reaches viewport bottom — works even on short viewports
-//   4. No gsap.set on opacity before triggers exist — elements
-//      only become invisible after ScrollTrigger is fully set up
-//   5. markers:false explicitly — never accidentally enables them
+// SCROLL ANIMATIONS
+//
+// Architecture: CSS hides elements immediately on page load (no flash).
+// GSAP only handles the entrance animation when element enters viewport.
+// This means initAnimations() can run immediately — no need to wait
+// for fonts, no need for gsap.set(opacity:0) (CSS already did it).
+//
+// Mobile fixes applied:
+//   • ScrollTrigger.config({ ignoreMobileResize:true }) — stops iOS
+//     address-bar height changes from invalidating all triggers
+//   • "bottom bottom" trigger — fires when bottom of element hits
+//     bottom of viewport, works for any element height
+//   • initAnimations() runs in ONE rAF after DOMContentLoaded —
+//     fast enough that triggers are ready before user scrolls
 // ══════════════════════════════════════════════════════════════════
 gsap.registerPlugin(ScrollTrigger);
-
-// Prevent iOS address-bar height changes from invalidating triggers
 ScrollTrigger.config({ ignoreMobileResize: true });
 
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 if (!prefersReduced) {
 
-  // ── Defer ALL animation init until fonts are loaded ──────────────
-  // Fonts change element heights → wrong trigger offsets
-  const INIT_PROMISE = (document.fonts && document.fonts.ready)
-    ? document.fonts.ready
-    : Promise.resolve();
-
-  INIT_PROMISE.then(() => {
-    // Extra rAF to ensure browser has painted with correct font metrics
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => initAnimations());
-    });
-  });
+  // Run in ONE rAF — fast, but after initial layout is complete
+  requestAnimationFrame(initAnimations);
 
   function initAnimations() {
 
     const mob = window.innerWidth < 768;
 
-    // "bottom bottom" = trigger fires when the BOTTOM of the element
-    // hits the BOTTOM of the viewport. Best for mobile where elements
-    // may be taller than the viewport.
-    // "top 95%" = fallback start for desktop (element top near bottom)
-    const ST_START = mob ? 'bottom bottom' : 'top 92%';
+    // Mobile: "bottom bottom" = fires when element's bottom edge
+    // reaches viewport bottom — works for any element height.
+    // Desktop: "top 88%" = fires when element top is near bottom.
+    const ST = mob ? 'bottom bottom' : 'top 88%';
 
-    // ── Batch helper for staggered groups ──────────────────────────
-    // Uses ScrollTrigger.batch for better performance on long lists
-    function batchReveal(selector, fromVars, toVars, batchOpts) {
-      const els = document.querySelectorAll(selector);
-      if (!els.length) return;
-      els.forEach(el => gsap.set(el, { opacity: 0, ...fromVars }));
-      ScrollTrigger.batch(selector, {
-        start: ST_START,
+    // ── Helpers ──────────────────────────────────────────────────
+
+    // Single element reveal
+    function show(el, vars, trigger, start) {
+      if (!el) return;
+      // Note: NO gsap.set needed — CSS already set opacity:0
+      ScrollTrigger.create({
+        trigger: trigger || el,
+        start: start || ST,
         once: true,
-        ...batchOpts,
-        onEnter: batch => gsap.to(batch, {
+        onEnter: () => gsap.to(el, { opacity: 1, ...vars, overwrite: 'auto' }),
+      });
+    }
+
+    // Group of elements with stagger delay
+    function showGroup(els, fromVars, toVars, triggerEl, start) {
+      if (!els || !els.length) return;
+      // Set initial transform (opacity already 0 from CSS)
+      els.forEach(el => {
+        if (fromVars.x !== undefined) gsap.set(el, { x: fromVars.x });
+        if (fromVars.y !== undefined) gsap.set(el, { y: fromVars.y });
+        if (fromVars.scale !== undefined) gsap.set(el, { scale: fromVars.scale });
+      });
+      ScrollTrigger.create({
+        trigger: triggerEl || els[0],
+        start: start || ST,
+        once: true,
+        onEnter: () => gsap.to(els, {
           opacity: 1,
+          x: 0, y: 0, scale: 1,
           ...toVars,
-          stagger: toVars.stagger || 0,
-          overwrite: true,
+          overwrite: 'auto',
         }),
       });
     }
 
-    // ── Single element helper ───────────────────────────────────────
-    function revealOne(el, fromVars, toVars, triggerEl, startOverride) {
-      if (!el) return;
-      gsap.set(el, { opacity: 0, ...fromVars });
-      ScrollTrigger.create({
-        trigger: triggerEl || el,
-        start: startOverride || ST_START,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, ...toVars, overwrite: true }),
-      });
-    }
-
-    // ══════════════════════════════════════════════════════════════
-    // 1. SECTION HEADERS (label, title, sub)
-    // ══════════════════════════════════════════════════════════════
+    // ── 1. Section headers ────────────────────────────────────────
     document.querySelectorAll('.section-label').forEach(el =>
-      revealOne(el, { y: 12 }, { y: 0, duration: 0.5, ease: 'power2.out' })
-    );
-    document.querySelectorAll('.section-title').forEach(el =>
-      revealOne(el, { y: mob ? 18 : 24 }, { y: 0, duration: mob ? 0.6 : 0.75, ease: 'power3.out' })
-    );
-    document.querySelectorAll('.section-sub').forEach(el =>
-      revealOne(el, { y: 10 }, { y: 0, duration: 0.5, ease: 'power2.out' })
-    );
+      show(el, { y: 0, duration: 0.5, ease: 'power2.out' },
+               el, ST));
 
-    // ══════════════════════════════════════════════════════════════
-    // 2. TRACK RECORD
-    // ══════════════════════════════════════════════════════════════
-    const trackHero = document.querySelector('#track .track-hero');
-    const barFills  = document.querySelectorAll('#track .bar-fill');
+    document.querySelectorAll('.section-title').forEach(el => {
+      gsap.set(el, { y: mob ? 16 : 22 });
+      show(el, { y: 0, duration: mob ? 0.55 : 0.7, ease: 'power3.out' });
+    });
+
+    document.querySelectorAll('.section-sub').forEach(el =>
+      show(el, { y: 0, duration: 0.5, ease: 'power2.out' }));
+
+    // ── 2. Track Record ───────────────────────────────────────────
+    const trackHero  = document.querySelector('#track .track-hero');
+    const trackMinis = document.querySelectorAll('#track .track-mini');
+    const barFills   = document.querySelectorAll('#track .bar-fill');
+    const compareCard = document.querySelector('#track .compare-card');
+    const feeCard    = document.querySelector('#track .fee-card');
 
     if (trackHero) {
-      gsap.set(trackHero, { opacity: 0, y: mob ? 24 : 36 });
+      gsap.set(trackHero, { y: mob ? 20 : 32 });
       ScrollTrigger.create({
-        trigger: trackHero,
-        start: ST_START,
-        once: true,
+        trigger: trackHero, start: ST, once: true,
         onEnter: () => {
-          gsap.to(trackHero, { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out', overwrite: true });
+          gsap.to(trackHero, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', overwrite: 'auto' });
           countUp($('track-usd'),   12.28, 1600, 2, '+', '%');
           countUp($('track-pesos'), 16.66, 1600, 2, '+', '%');
           countUp($('track-tbill'),  2.21, 1400, 2, '+', '%');
           barFills.forEach((b, i) =>
-            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 110 + 300)
-          );
+            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 110 + 300));
         },
       });
     }
+    if (trackMinis.length) showGroup(trackMinis, { x: 20 }, { x: 0, duration: 0.55, ease: 'power3.out', stagger: 0.08 }, trackHero);
+    if (compareCard) show(compareCard, { y: 0, duration: 0.6, ease: 'power2.out' });
+    if (feeCard)     show(feeCard,     { y: 0, duration: 0.6, ease: 'power2.out' });
 
-    const trackMinis  = document.querySelectorAll('#track .track-mini');
-    const compareCard = document.querySelector('#track .compare-card');
-    const feeCard     = document.querySelector('#track .fee-card');
-
-    trackMinis.forEach((el, i) => revealOne(el, { x: 20 }, { x: 0, duration: 0.55, ease: 'power3.out', delay: i * 0.08 }, trackHero));
-    if (compareCard) revealOne(compareCard, { y: 18 }, { y: 0, duration: 0.6, ease: 'power2.out' });
-    if (feeCard)     revealOne(feeCard,     { y: 18 }, { y: 0, duration: 0.6, ease: 'power2.out' });
-
-    // ══════════════════════════════════════════════════════════════
-    // 3. CARTERA DONUT
-    // ══════════════════════════════════════════════════════════════
+    // ── 3. Cartera ────────────────────────────────────────────────
     const donutWrap  = document.querySelector('#cartera .donut-wrap');
     const legendRows = document.querySelectorAll('#cartera .legend-row');
     const barFillsC  = document.querySelectorAll('#cartera .legend-bar-fill');
 
     if (donutWrap) {
-      gsap.set(donutWrap, { opacity: 0, scale: 0.9 });
+      gsap.set(donutWrap, { scale: 0.9 });
       ScrollTrigger.create({
-        trigger: donutWrap,
-        start: ST_START,
-        once: true,
+        trigger: donutWrap, start: ST, once: true,
         onEnter: () => {
-          gsap.to(donutWrap, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)', overwrite: true });
+          gsap.to(donutWrap, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)', overwrite: 'auto' });
           barFillsC.forEach((b, i) =>
-            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 40 + 400)
-          );
+            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 40 + 400));
         },
       });
     }
-    legendRows.forEach((el, i) => revealOne(el, { x: -16 }, { x: 0, duration: 0.45, ease: 'power3.out', delay: i * 0.04 }, donutWrap));
+    if (legendRows.length) {
+      legendRows.forEach(el => gsap.set(el, { x: -16 }));
+      showGroup(legendRows, { x: -16 }, { x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.04 }, donutWrap);
+    }
 
-    // ══════════════════════════════════════════════════════════════
-    // 4. EQUIPO
-    // ══════════════════════════════════════════════════════════════
+    // ── 4. Equipo ─────────────────────────────────────────────────
     const equipoHero  = document.querySelector('#equipo .equipo-hero');
-    const comiteGrid  = document.querySelector('#equipo .comite-grid');
     const equipoStats = document.querySelectorAll('#equipo .equipo-stat');
     const comiteCards = document.querySelectorAll('#equipo .comite-card');
+    const comiteGrid  = document.querySelector('#equipo .comite-grid');
 
-    if (equipoHero) revealOne(equipoHero, { y: 24 }, { y: 0, duration: 0.8, ease: 'power3.out' });
-    equipoStats.forEach((el, i) => revealOne(el, { y: 14 }, { y: 0, duration: 0.5, ease: 'power2.out', delay: i * 0.07 }, equipoHero));
-    comiteCards.forEach((el, i) => {
-      gsap.set(el, { opacity: 0, y: 18, scale: 0.97 });
-      ScrollTrigger.create({
-        trigger: comiteGrid || el,
-        start: ST_START,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out', delay: i * 0.07, overwrite: true }),
-      });
-    });
+    if (equipoHero) { gsap.set(equipoHero, { y: 22 }); show(equipoHero, { y: 0, duration: 0.8, ease: 'power3.out' }); }
+    if (equipoStats.length) showGroup(equipoStats, { y: 14 }, { y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.07 }, equipoHero);
+    if (comiteCards.length) {
+      comiteCards.forEach(el => gsap.set(el, { y: 16, scale: 0.97 }));
+      showGroup(comiteCards, { y: 16, scale: 0.97 }, { y: 0, scale: 1, duration: 0.55, ease: 'power3.out', stagger: 0.07 }, comiteGrid || comiteCards[0]);
+    }
 
-    // ══════════════════════════════════════════════════════════════
-    // 5. ESTRATEGIA
-    // ══════════════════════════════════════════════════════════════
-    const estGrid  = document.querySelector('#estrategia .est-grid');
+    // ── 5. Estrategia ─────────────────────────────────────────────
     const estCards = document.querySelectorAll('#estrategia .est-card');
-    estCards.forEach((el, i) => {
-      gsap.set(el, { opacity: 0, y: 22, scale: 0.95 });
-      ScrollTrigger.create({
-        trigger: estGrid || el,
-        start: ST_START,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power3.out', delay: i * 0.1, overwrite: true }),
-      });
-    });
+    const estGrid  = document.querySelector('#estrategia .est-grid');
+    if (estCards.length) {
+      estCards.forEach(el => gsap.set(el, { y: 20, scale: 0.95 }));
+      showGroup(estCards, { y: 20, scale: 0.95 }, { y: 0, scale: 1, duration: 0.6, ease: 'power3.out', stagger: 0.1 }, estGrid || estCards[0]);
+    }
 
-    // ══════════════════════════════════════════════════════════════
-    // 6. OPERATORIA
-    // ══════════════════════════════════════════════════════════════
+    // ── 6. Operatoria ─────────────────────────────────────────────
+    const opsCards = document.querySelectorAll('#operatoria .ops-card');
     const opsGrid  = document.querySelector('#operatoria .ops-grid');
     const feeBox   = document.querySelector('#operatoria .fee-box');
-    document.querySelectorAll('#operatoria .ops-card').forEach((el, i) => {
-      gsap.set(el, { opacity: 0, scale: 0.88 });
-      ScrollTrigger.create({
-        trigger: opsGrid || el,
-        start: ST_START,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.4)', delay: i * 0.07, overwrite: true }),
-      });
-    });
-    if (feeBox) revealOne(feeBox, { y: 18 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+    if (opsCards.length) {
+      opsCards.forEach(el => gsap.set(el, { scale: 0.88 }));
+      showGroup(opsCards, { scale: 0.88 }, { scale: 1, duration: 0.55, ease: 'back.out(1.4)', stagger: 0.07 }, opsGrid || opsCards[0]);
+    }
+    if (feeBox) show(feeBox, { y: 0, duration: 0.6, ease: 'power2.out' });
 
-    // ══════════════════════════════════════════════════════════════
-    // 7. ACCESO (steps + store row)
-    // ══════════════════════════════════════════════════════════════
-    const stepsEl  = document.querySelector('#acceso .steps');
-    const storeRow = document.querySelector('#acceso .store-row');
-    document.querySelectorAll('#acceso .step-card').forEach((el, i) => {
-      gsap.set(el, { opacity: 0, x: mob ? -14 : -24 });
-      ScrollTrigger.create({
-        trigger: stepsEl || el,
-        start: ST_START,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: i * 0.12, overwrite: true }),
-      });
-    });
-    if (storeRow) revealOne(storeRow, { y: 16 }, { y: 0, duration: 0.6, ease: 'back.out(1.2)' });
+    // ── 7. Acceso ─────────────────────────────────────────────────
+    const stepCards = document.querySelectorAll('#acceso .step-card');
+    const stepsEl   = document.querySelector('#acceso .steps');
+    const storeRow  = document.querySelector('#acceso .store-row');
+    if (stepCards.length) {
+      stepCards.forEach(el => gsap.set(el, { x: mob ? -14 : -22 }));
+      showGroup(stepCards, { x: mob ? -14 : -22 }, { x: 0, duration: 0.6, ease: 'power3.out', stagger: 0.1 }, stepsEl || stepCards[0]);
+    }
+    if (storeRow) show(storeRow, { y: 0, duration: 0.6, ease: 'back.out(1.2)' });
 
-    // ══════════════════════════════════════════════════════════════
-    // 8. CONTACTO
-    // ══════════════════════════════════════════════════════════════
+    // ── 8. Contacto ───────────────────────────────────────────────
     const contactCard = document.querySelector('#contacto .contact-card');
-    if (contactCard) revealOne(contactCard, { y: 24 }, { y: 0, duration: 0.8, ease: 'power3.out' });
+    if (contactCard) { gsap.set(contactCard, { y: 22 }); show(contactCard, { y: 0, duration: 0.8, ease: 'power3.out' }); }
 
-    // ══════════════════════════════════════════════════════════════
-    // 9. GRUPO IEB pills
-    // ══════════════════════════════════════════════════════════════
-    const pillsParent = document.querySelector('#grupo-ieb');
-    document.querySelectorAll('#grupo-ieb .ieb-logo-pill').forEach((el, i) => {
-      gsap.set(el, { opacity: 0, y: 12, scale: 0.94 });
-      ScrollTrigger.create({
-        trigger: pillsParent || el,
-        start: ST_START,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.2)', delay: i * 0.05, overwrite: true }),
-      });
+    // ── 9. Grupo IEB pills ────────────────────────────────────────
+    const pills       = document.querySelectorAll('#grupo-ieb .ieb-logo-pill');
+    const pillParent  = document.querySelector('#grupo-ieb');
+    if (pills.length) {
+      pills.forEach(el => gsap.set(el, { y: 10, scale: 0.94 }));
+      showGroup(pills, { y: 10, scale: 0.94 }, { y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.2)', stagger: 0.05 }, pillParent);
+    }
+
+    // ── 10. Generic .reveal* fallback (not covered above) ─────────
+    const alreadyCovered = new Set([
+      ...document.querySelectorAll(
+        '#track .track-hero, #track .track-mini, #track .compare-card, #track .fee-card,' +
+        '#cartera .donut-wrap, #cartera .legend-row,' +
+        '#equipo .equipo-hero, #equipo .equipo-stat, #equipo .comite-card,' +
+        '#estrategia .est-card, #operatoria .ops-card, #operatoria .fee-box,' +
+        '#acceso .step-card, #acceso .store-row,' +
+        '#contacto .contact-card, #grupo-ieb .ieb-logo-pill,' +
+        '.section-title, .section-label, .section-sub'
+      )
+    ]);
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-s, .reveal-pop').forEach(el => {
+      if (alreadyCovered.has(el)) return;
+      show(el, { y: 0, x: 0, scale: 1, duration: 0.65, ease: 'power3.out' });
     });
 
-    // ══════════════════════════════════════════════════════════════
-    // 10. Generic .reveal classes (anything not covered above)
-    // ══════════════════════════════════════════════════════════════
-    const coveredSections = '#track,#cartera,#equipo,#estrategia,#operatoria,#acceso,#contacto,#grupo-ieb';
-    const coveredEls = new Set(document.querySelectorAll(
-      `${coveredSections} .section-label, ${coveredSections} .section-title, ${coveredSections} .section-sub`
-    ));
-
-    [
-      ['.reveal',       { y: 20 },      { y: 0, duration: 0.7, ease: 'power3.out' }],
-      ['.reveal-left',  { x: mob?-16:-24 }, { x: 0, duration: 0.65, ease: 'power3.out' }],
-      ['.reveal-right', { x: mob?16:24  }, { x: 0, duration: 0.65, ease: 'power3.out' }],
-      ['.reveal-s',     { y: 14, scale:0.97 }, { y: 0, scale:1, duration: 0.75, ease: 'power2.out' }],
-      ['.reveal-pop',   { scale:0.88 },  { scale:1, duration: 0.6, ease: 'back.out(1.3)' }],
-    ].forEach(([sel, from, to]) => {
-      document.querySelectorAll(sel).forEach(el => {
-        if (coveredEls.has(el)) return;
-        revealOne(el, from, to);
-      });
-    });
-
-    // Final refresh after all triggers are created
     ScrollTrigger.refresh();
 
-  } // end initAnimations()
+  } // end initAnimations
 
-  // ── Re-init on orientation change (portrait↔landscape) ─────────
+  // Re-init triggers on orientation change
   window.addEventListener('orientationchange', () => {
-    // Wait for the new viewport to settle
     setTimeout(() => ScrollTrigger.refresh(), 500);
   });
+
+  // Refresh after fonts load (doesn't need to block init anymore,
+  // but corrects any trigger positions affected by font metrics)
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => ScrollTrigger.refresh());
+  }
 
 } // end if(!prefersReduced)
 
