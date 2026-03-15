@@ -185,6 +185,11 @@ nav.scrolled{
 .nebula-b{width:700px;height:700px;background:radial-gradient(circle,rgba(123,82,255,.11),transparent 70%);bottom:-12%;left:-10%;animation:nbPulse 10s ease-in-out infinite .5s;}
 .nebula-c{width:500px;height:500px;background:radial-gradient(circle,rgba(34,211,165,.08),transparent 70%);top:30%;left:55%;animation:nbPulse 7s ease-in-out infinite 2s;}
 @keyframes nbPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.12);opacity:1}}
+/* On mobile: disable nebula animation and reduce blur to save GPU */
+@media(max-width:767px){
+  .nebula{filter:blur(60px);animation:none!important;}
+  .nebula-c{display:none;}
+}
 
 .hero-content{position:relative;z-index:2;max-width:960px;display:flex;flex-direction:column;align-items:center;}
 
@@ -342,13 +347,14 @@ section{padding:80px 20px;box-sizing:border-box;}
    ═══════════════════════════════════════════════════════════════ */
 .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
   opacity:0;
-  will-change:transform,opacity;
+  /* will-change is set dynamically by JS just before animation — avoids
+     GPU layer cost on mobile for elements not yet near the viewport */
 }
-.reveal{transform:translate3d(0,32px,0);}
-.reveal-left{transform:translate3d(-48px,0,0);}
-.reveal-right{transform:translate3d(48px,0,0);}
-.reveal-s{transform:translate3d(0,24px,0) scale(.96);}
-.reveal-pop{transform:translate3d(0,0,0) scale(.88);}
+.reveal{transform:translate3d(0,24px,0);}
+.reveal-left{transform:translate3d(-32px,0,0);}
+.reveal-right{transform:translate3d(32px,0,0);}
+.reveal-s{transform:translate3d(0,16px,0) scale(.97);}
+.reveal-pop{transform:translate3d(0,0,0) scale(.9);}
 @media(prefers-reduced-motion:reduce){
   .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
     opacity:1!important;transform:none!important;will-change:auto!important;
@@ -1220,6 +1226,23 @@ footer{
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
 /* ═══════════════════════════════════════════════════════════════
+   PERFORMANCE — containment for off-screen sections
+   ═══════════════════════════════════════════════════════════════ */
+/* content-visibility skips layout/paint for below-fold sections
+   until they're close to the viewport — huge mobile win */
+#track,#cartera,#equipo,#estrategia,#operatoria,#acceso,#grupo-ieb,#contacto,footer{
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+/* Ticker is always visible strip - don't skip */
+.ticker-wrap{ content-visibility: visible; }
+
+/* Ensure backdrop-filter layers are composited cleanly */
+nav, .track-mini, .store-pill, .est-icon, .hero-stats-mini{
+  transform: translateZ(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    NAV — hamburger components
    ═══════════════════════════════════════════════════════════════ */
 .nav-hamburger{
@@ -1384,6 +1407,35 @@ footer{ padding:44px var(--sp-edge) 28px; }
 .footer-legal{ font-size:10px; max-width:100%; }
 .footer-bottom{ flex-direction:column; align-items:flex-start; gap:8px; padding-top:20px; }
 .footer-copy{ font-size:9px; }
+
+/* On mobile: reduce or disable heavy backdrop-filter to prevent scroll jank */
+@media(max-width:767px){
+  nav.scrolled{
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+  .track-mini{
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    background:rgba(255,255,255,.08);
+  }
+  .store-pill{
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+  .hero-stats-mini{
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .est-icon{
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+  /* Disable noise overlay on mobile (expensive SVG filter) */
+  body::before{ display:none; }
+  /* Ticker: slightly faster on mobile */
+  .ticker-track{ animation-duration:20s; }
+}
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2414,41 +2466,54 @@ gsap.registerPlugin(ScrollTrigger);
 // Respect prefers-reduced-motion
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Detect mobile for lighter animations
+const isMobile = window.innerWidth < 768;
+
 if (!prefersReduced) {
   // Helper: stagger index from d1–d8 classes
   function getDelay(el) {
     for (let i = 8; i >= 1; i--) {
-      if (el.classList.contains('d' + i)) return i * 0.08;
+      if (el.classList.contains('d' + i)) return i * (isMobile ? 0.06 : 0.08);
     }
     return 0;
   }
+
+  // On mobile, reduce translation distances to avoid jank
+  const xDist  = isMobile ? 22 : 36;
+  const yDist  = isMobile ? 18 : 24;
+  const scalePop = isMobile ? 0.93 : 0.88;
+  const scaleS   = isMobile ? 0.98 : 0.96;
+
+  // Trigger threshold — on mobile start a bit earlier so elements
+  // don't pop in all at once when the page loads
+  const triggerStart = isMobile ? 'top 95%' : 'top 88%';
 
   // Config per class
   const configs = [
     {
       sel: '.reveal',
-      from: { opacity: 0, y: 32 },
-      to:   { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out' }
+      from: { opacity: 0, y: yDist },
+      to:   { opacity: 1, y: 0, duration: isMobile ? 0.65 : 0.85, ease: 'power3.out' }
     },
     {
       sel: '.reveal-left',
-      from: { opacity: 0, x: -48 },
-      to:   { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }
+      from: { opacity: 0, x: -xDist },
+      to:   { opacity: 1, x: 0, duration: isMobile ? 0.6 : 0.8, ease: 'power3.out' }
     },
     {
       sel: '.reveal-right',
-      from: { opacity: 0, x: 48 },
-      to:   { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }
+      from: { opacity: 0, x: xDist },
+      to:   { opacity: 1, x: 0, duration: isMobile ? 0.6 : 0.8, ease: 'power3.out' }
     },
     {
       sel: '.reveal-s',
-      from: { opacity: 0, y: 24, scale: 0.96 },
-      to:   { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power2.out' }
+      from: { opacity: 0, y: yDist * 0.7, scale: scaleS },
+      to:   { opacity: 1, y: 0, scale: 1, duration: isMobile ? 0.7 : 0.9, ease: 'power2.out' }
     },
     {
       sel: '.reveal-pop',
-      from: { opacity: 0, scale: 0.88 },
-      to:   { opacity: 1, scale: 1, duration: 0.7, ease: 'back.out(1.4)' }
+      from: { opacity: 0, scale: scalePop },
+      to:   { opacity: 1, scale: 1, duration: isMobile ? 0.55 : 0.7, ease: 'back.out(1.2)' }
     }
   ];
 
@@ -2461,19 +2526,75 @@ if (!prefersReduced) {
 
       ScrollTrigger.create({
         trigger: el,
-        start: 'top 88%',
+        start: triggerStart,
         once: true,
         onEnter: () => {
-          gsap.to(el, { ...to, delay });
+          // Set will-change just before animating, clear after
+          el.style.willChange = 'transform, opacity';
+          gsap.to(el, {
+            ...to,
+            delay,
+            onComplete: () => { el.style.willChange = 'auto'; }
+          });
         }
       });
     });
   });
 
-  // Stagger children inside grids for a wave effect
-  // (section headers with multiple children)
-  document.querySelectorAll('.reveal-left, .reveal-right').forEach(el => {
-    // already handled above — skip if it's a grid parent
+  // ── ASSETS left-to-right stagger (est-grid, ops-grid, step-card) ──
+  // Group grid children and animate them left→right in sequence
+  const staggerGrids = [
+    { parent: '#estrategia .est-grid',  cls: '.est-card',   axis: 'x', dist: isMobile ? 24 : 40, dur: isMobile ? 0.6 : 0.75 },
+    { parent: '#operatoria .ops-grid',  cls: '.ops-card',   axis: 'x', dist: isMobile ? 20 : 32, dur: isMobile ? 0.55 : 0.65 },
+    { parent: '#acceso .steps',         cls: '.step-card',  axis: 'x', dist: isMobile ? 20 : 36, dur: isMobile ? 0.55 : 0.65 },
+    { parent: '#track .track-grid',     cls: '.track-mini', axis: 'x', dist: isMobile ? 20 : 32, dur: isMobile ? 0.55 : 0.65 },
+    { parent: '#cartera .cartera-card', cls: '.legend-row', axis: 'x', dist: isMobile ? 16 : 28, dur: isMobile ? 0.5 : 0.6 },
+    { parent: '#equipo .comite-grid',   cls: '.comite-card',axis: 'x', dist: isMobile ? 18 : 30, dur: isMobile ? 0.55 : 0.65 },
+    { parent: '#equipo .equipo-stats',  cls: '.equipo-stat',axis: 'x', dist: isMobile ? 16 : 24, dur: isMobile ? 0.5 : 0.6 },
+  ];
+
+  staggerGrids.forEach(({ parent, cls, axis, dist, dur }) => {
+    const parentEl = document.querySelector(parent);
+    if (!parentEl) return;
+    const items = parentEl.querySelectorAll(cls);
+    if (!items.length) return;
+
+    // Only apply if items don't already have a reveal class (avoid double animation)
+    const unmanaged = Array.from(items).filter(el =>
+      !el.classList.contains('reveal') &&
+      !el.classList.contains('reveal-left') &&
+      !el.classList.contains('reveal-right') &&
+      !el.classList.contains('reveal-s') &&
+      !el.classList.contains('reveal-pop')
+    );
+    if (!unmanaged.length) return;
+
+    const fromProps = axis === 'x'
+      ? { opacity: 0, x: -dist }
+      : { opacity: 0, y: dist };
+    const toProps = axis === 'x'
+      ? { opacity: 1, x: 0 }
+      : { opacity: 1, y: 0 };
+
+    gsap.set(unmanaged, fromProps);
+
+    ScrollTrigger.create({
+      trigger: parentEl,
+      start: triggerStart,
+      once: true,
+      onEnter: () => {
+        unmanaged.forEach(el => { el.style.willChange = 'transform, opacity'; });
+        gsap.to(unmanaged, {
+          ...toProps,
+          duration: dur,
+          ease: 'power3.out',
+          stagger: isMobile ? 0.07 : 0.09,
+          onComplete: () => {
+            unmanaged.forEach(el => { el.style.willChange = 'auto'; });
+          }
+        });
+      }
+    });
   });
 
   ScrollTrigger.refresh();
@@ -2670,7 +2791,7 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
 (function(){
   const c=$('comite-grid');const delays=['d1','d2','d3','d4','d5'];
   c.innerHTML=TEAM.map((m,i)=>`
-    <div class="comite-card reveal-s ${delays[i]}">
+    <div class="comite-card ${delays[i]}">
       <div class="comite-photo">
         ${m.photo
           ? `<img src="${m.photo}" alt="${m.name}" loading="lazy">`
@@ -2684,52 +2805,31 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
         <div class="comite-spec">${m.spec}</div>
       </div>
     </div>`).join('');
-  if(!prefersReduced){
-    c.querySelectorAll('.reveal-s').forEach(el=>{
-      const i=parseInt((el.className.match(/d(\d)/)||[,0])[1])||0;
-      gsap.set(el,{opacity:0,y:16,scale:0.98});
-      ScrollTrigger.create({trigger:el,start:'top 92%',once:true,
-        onEnter:()=>gsap.to(el,{opacity:1,y:0,scale:1,duration:.65,ease:'power2.out',delay:i*.06})});
-    });
-  }
+  // Animation handled by the unified staggerGrids system above
 })();
 
 // ── ESTRATEGIA ─────────────────────────────────────────────────────
 (function(){
   const c=$('est-grid');const delays=['d1','d2','d3','d4'];
   c.innerHTML=ESTRATEGIA.map((e,i)=>`
-    <div class="est-card reveal-left ${delays[i]}">
+    <div class="est-card ${delays[i]}">
       <div class="est-num">${e.n}</div>
       <div class="est-icon" style="background:${e.color}12;border-color:${e.color}30;">${e.svg}</div>
       <div class="est-title">${e.title}</div>
       <p class="est-desc">${e.desc}</p>
     </div>`).join('');
-  if(!prefersReduced){
-    c.querySelectorAll('.reveal-left').forEach(el=>{
-      const i=parseInt((el.className.match(/d(\d)/)||[,0])[1])||0;
-      gsap.set(el,{opacity:0,x:-48});
-      ScrollTrigger.create({trigger:el,start:'top 88%',once:true,
-        onEnter:()=>gsap.to(el,{opacity:1,x:0,duration:.8,ease:'power3.out',delay:i*.08})});
-    });
-  }
+  // Animation handled by the unified staggerGrids system above
 })();
 
 // ── OPS ────────────────────────────────────────────────────────────
 (function(){
   const c=$('ops-grid');const delays=['d1','d2','d3','d4','d5','d6'];
   c.innerHTML=OPS.map((o,i)=>`
-    <div class="ops-card reveal-pop ${delays[i]}">
+    <div class="ops-card ${delays[i]}">
       <div class="ops-val" style="color:${o.color}">${o.val}</div>
       <div class="ops-lbl">${o.lbl}</div>
     </div>`).join('');
-  if(!prefersReduced){
-    c.querySelectorAll('.reveal-pop').forEach(el=>{
-      const i=parseInt((el.className.match(/d(\d)/)||[,0])[1])||0;
-      gsap.set(el,{opacity:0,scale:0.88});
-      ScrollTrigger.create({trigger:el,start:'top 92%',once:true,
-        onEnter:()=>gsap.to(el,{opacity:1,scale:1,duration:.7,ease:'back.out(1.4)',delay:i*.08})});
-    });
-  }
+  // Animation handled by the unified staggerGrids system above
 })();
 
 // ── STAR FIELD CANVAS ─────────────────────────────────────────────
@@ -2737,16 +2837,34 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
   const canvas=$('hero-canvas');
   const ctx=canvas.getContext('2d');
 
+  // On mobile, reduce canvas work significantly
+  const isMob = window.innerWidth < 768;
+
   function seed(n){let x=Math.sin(n*9301+49297)*233280;return x-Math.floor(x);}
 
-  const resize=()=>{canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;};
+  const resize=()=>{
+    // Use device pixel ratio capped at 1.5 for performance
+    const dpr = Math.min(window.devicePixelRatio || 1, isMob ? 1 : 1.5);
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+    canvas._dpr = dpr;
+  };
   resize();
-  window.addEventListener('resize',resize,{passive:true});
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 200);
+  }, {passive:true});
+
+  // Fewer particles on mobile
+  const starCount = isMob ? 40 : 80;
+  const warpCount = isMob ? 50 : 120;
 
   // Stars
-  const stars=Array.from({length:80},(_, i)=>({
-    x:seed(i*3)*canvas.width,
-    y:seed(i*3+1)*canvas.height,
+  const stars=Array.from({length:starCount},(_, i)=>({
+    x:seed(i*3)*canvas.offsetWidth,
+    y:seed(i*3+1)*canvas.offsetHeight,
     r:0.4+seed(i*3+2)*1.5,
     a:0.1+seed(i*3+3)*0.6,
     phase:seed(i*3+4)*Math.PI*2,
@@ -2755,8 +2873,7 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
   }));
 
   // Warp lines
-  const N=120;
-  let warp=Array.from({length:N},(_, i)=>({
+  let warp=Array.from({length:warpCount},(_, i)=>({
     ox:(seed(i*7)-0.5)*2,
     oy:(seed(i*7+1)-0.5)*2,
     z:seed(i*7+2),
@@ -2766,10 +2883,24 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
   }));
 
   let t=0;
-  const draw=()=>{
-    const W=canvas.width,H=canvas.height;
+  let lastFrame = 0;
+  // On mobile target ~30fps, desktop 60fps
+  const fpsInterval = isMob ? 1000/30 : 1000/60;
+
+  // Pause when tab not visible
+  let paused = false;
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+
+  const draw=(ts)=>{
+    requestAnimationFrame(draw);
+    if (paused) return;
+    const elapsed = ts - lastFrame;
+    if (elapsed < fpsInterval) return;
+    lastFrame = ts - (elapsed % fpsInterval);
+
+    const W=canvas.offsetWidth, H=canvas.offsetHeight;
     ctx.clearRect(0,0,W,H);
-    t+=1/60;
+    t+=elapsed/1000;
 
     // Static field
     stars.forEach(s=>{
@@ -2780,7 +2911,12 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
       ctx.fill();
     });
 
-    // Warp streaks
+    if(isMob){
+      // On mobile skip warp streaks entirely — stars only
+      return;
+    }
+
+    // Warp streaks (desktop only)
     const cx=W/2,cy=H/2;
     warp.forEach(w=>{
       w.z-=w.spd*0.016;
@@ -2803,10 +2939,8 @@ const ts=document.getElementById('track');if(ts)tObs.observe(ts);
       ctx.lineWidth=w.sz*brightness;
       ctx.stroke();
     });
-
-    requestAnimationFrame(draw);
   };
-  draw();
+  requestAnimationFrame(draw);
 })();
 
 // ── FORM ───────────────────────────────────────────────────────────
@@ -2817,6 +2951,13 @@ $('contact-form').addEventListener('submit',e=>{
   s.style.display='block';
   s.style.animation='fadeUp .5s ease forwards';
 });
+
+// ── Refresh ScrollTrigger after all dynamic content is injected ──
+// The comite/estrategia/ops grids are populated above via innerHTML,
+// so ScrollTrigger needs one final refresh to pick them up correctly.
+if(!prefersReduced){
+  requestAnimationFrame(()=>{ ScrollTrigger.refresh(); });
+}
 </script>
 
 
