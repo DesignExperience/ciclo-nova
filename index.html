@@ -351,18 +351,12 @@ section{padding:80px 20px;box-sizing:border-box;}
 .section-sub{font-size:15px;color:var(--sub);margin-bottom:36px;font-weight:400;line-height:1.8;letter-spacing:.01em;}
 
 /* ═══════════════════════════════════════════════════════════════
-   REVEAL — initial hidden state (GSAP animates these in)
+   REVEAL — GSAP controla estado inicial via gsap.set()
+   Solo opacity:0 como fallback CSS; los transforms los pone GSAP
    ═══════════════════════════════════════════════════════════════ */
 .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
-  opacity:0;
-  /* will-change is set dynamically by JS just before animation — avoids
-     GPU layer cost on mobile for elements not yet near the viewport */
+  /* opacity set to 0 by GSAP at runtime — visible by default for no-JS/slow-JS */
 }
-.reveal{transform:translate3d(0,24px,0);}
-.reveal-left{transform:translate3d(-32px,0,0);}
-.reveal-right{transform:translate3d(32px,0,0);}
-.reveal-s{transform:translate3d(0,16px,0) scale(.97);}
-.reveal-pop{transform:translate3d(0,0,0) scale(.9);}
 @media(prefers-reduced-motion:reduce){
   .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
     opacity:1!important;transform:none!important;will-change:auto!important;
@@ -1241,14 +1235,7 @@ footer{
 /* ═══════════════════════════════════════════════════════════════
    PERFORMANCE — containment for off-screen sections
    ═══════════════════════════════════════════════════════════════ */
-/* content-visibility skips layout/paint for below-fold sections
-   until they're close to the viewport — huge mobile win */
-#track,#cartera,#equipo,#estrategia,#operatoria,#acceso,#grupo-ieb,#contacto,footer{
-  content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
-}
-/* Ticker is always visible strip - don't skip */
-.ticker-wrap{ content-visibility: visible; }
+/* content-visibility removed — incompatible with GSAP ScrollTrigger position calculation */
 
 /* Ensure backdrop-filter layers are composited cleanly */
 nav, .track-mini, .store-pill, .est-icon, .hero-stats-mini{
@@ -1256,45 +1243,301 @@ nav, .track-mini, .store-pill, .est-icon, .hero-stats-mini{
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   NAV — hamburger components
+   NAV — HAMBURGER + MOBILE DRAWER
+   Mobile-first. Best practices:
+   • CSS-only transitions (no display:none toggle — uses transform+opacity)
+   • scroll-lock via body.menu-open class
+   • focus-trap via JS
+   • ARIA aria-expanded / aria-hidden managed by JS
+   • overscroll-behavior: contain on drawer
+   • 44px min touch target on hamburger (WCAG 2.5.5)
    ═══════════════════════════════════════════════════════════════ */
-.nav-hamburger{
-  display:flex;flex-direction:column;justify-content:center;gap:5px;
-  width:36px;height:36px;cursor:pointer;padding:4px;
-  border-radius:8px;transition:background .2s;
-}
-.nav-hamburger:hover{background:var(--card);}
-.nav-hamburger span{
-  display:block;height:1.5px;border-radius:2px;
-  background:var(--text);transition:transform .3s,opacity .3s;
-}
-.nav-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
-.nav-hamburger.open span:nth-child(2){opacity:0;}
-.nav-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
 
+/* ── Scroll lock when menu open ── */
+body.menu-open{
+  overflow:hidden;
+  /* prevent iOS momentum scroll bleed */
+  position:fixed;
+  width:100%;
+}
+
+/* ── Hamburger button ─────────────────────────────────────────── */
+.nav-hamburger{
+  /* 44×44 min touch target */
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:5.5px;
+  width:44px;height:44px;
+  cursor:pointer;padding:0;
+  border-radius:12px;
+  border:1px solid transparent;
+  background:transparent;
+  transition:background .22s ease, border-color .22s ease;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;z-index:310;
+  flex-shrink:0;
+}
+.nav-hamburger:hover{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.1);
+}
+.nav-hamburger:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:2px;
+}
+
+/* Three bars */
+.nav-hamburger span{
+  display:block;
+  width:22px;height:1.5px;
+  border-radius:2px;
+  background:var(--text);
+  transform-origin:center;
+  transition:
+    transform .38s cubic-bezier(.23,1,.32,1),
+    opacity   .22s ease,
+    width     .32s cubic-bezier(.23,1,.32,1);
+  will-change:transform;
+}
+/* Middle bar shortens before X */
+.nav-hamburger span:nth-child(2){
+  width:16px;
+}
+
+/* ── X morphing ── */
+.nav-hamburger[aria-expanded="true"] span:nth-child(1){
+  transform:translateY(7px) rotate(45deg);
+  width:22px;
+}
+.nav-hamburger[aria-expanded="true"] span:nth-child(2){
+  opacity:0;
+  width:0;
+  transform:scaleX(0);
+}
+.nav-hamburger[aria-expanded="true"] span:nth-child(3){
+  transform:translateY(-7px) rotate(-45deg);
+  width:22px;
+}
+
+/* ── Backdrop overlay ─────────────────────────────────────────── */
+.nav-overlay{
+  position:fixed;inset:0;
+  background:rgba(2,4,18,.7);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  z-index:290;
+  /* Use visibility+opacity instead of display:none for animatable close */
+  visibility:hidden;
+  opacity:0;
+  transition:opacity .38s ease, visibility .38s;
+}
+.nav-overlay.is-open{
+  visibility:visible;
+  opacity:1;
+}
+
+/* ── Mobile drawer ────────────────────────────────────────────── */
 .nav-mobile-menu{
-  display:none;
-  position:fixed;top:60px;left:0;right:0;
-  background:rgba(4,4,15,0.97);
-  backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
-  padding:20px 24px 28px;
-  flex-direction:column;gap:4px;
-  z-index:199;
+  position:fixed;
+  top:0;right:0;
+  width:min(300px, calc(100vw - 56px));
+  height:100%;
+  height:100dvh; /* dynamic viewport height — handles mobile browser chrome */
+  background:rgba(5,5,18,.98);
+  backdrop-filter:blur(32px);
+  -webkit-backdrop-filter:blur(32px);
+  border-left:1px solid rgba(255,255,255,.07);
+  z-index:300;
+  display:flex;
+  flex-direction:column;
+  /* Translate off-screen right; visibility hidden prevents focus leak */
+  transform:translateX(100%);
+  visibility:hidden;
+  transition:
+    transform .4s cubic-bezier(.23,1,.32,1),
+    visibility .4s;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  /* Safe area insets for notched phones */
+  padding-bottom:env(safe-area-inset-bottom, 20px);
+  padding-right:env(safe-area-inset-right, 0px);
 }
-.nav-mobile-menu.open{display:flex;}
+.nav-mobile-menu.is-open{
+  transform:translateX(0);
+  visibility:visible;
+}
+
+/* ── Drawer header ── */
+.nav-mobile-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  height:64px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-shrink:0;
+}
+.nav-mobile-brand{
+  font-family:var(--font-display);
+  font-weight:700;font-size:14px;letter-spacing:.02em;
+  color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.nav-mobile-brand-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--blue);
+  box-shadow:0 0 8px var(--blue);
+  flex-shrink:0;
+}
+/* Close button inside drawer */
+.nav-mobile-close{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;
+  border-radius:8px;border:1px solid rgba(255,255,255,.08);
+  background:transparent;
+  color:var(--sub);
+  font-size:18px;line-height:1;
+  cursor:pointer;
+  transition:background .18s, color .18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.nav-mobile-close:hover{
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+}
+.nav-mobile-close:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:2px;
+}
+
+/* ── Nav list ── */
+.nav-mobile-list{
+  flex:1;
+  padding:12px 16px;
+  display:flex;flex-direction:column;gap:2px;
+}
+
+/* ── Each link ── */
 .nav-mobile-link{
-  padding:12px 16px;border-radius:10px;
-  font-size:14px;font-weight:600;color:var(--sub);
-  font-family:var(--font-mono);letter-spacing:.3px;
-  transition:color .2s,background .2s;
+  display:flex;align-items:center;gap:14px;
+  padding:13px 14px;
+  border-radius:12px;
+  font-family:var(--font-body);
+  font-size:15px;font-weight:600;
+  color:var(--sub);
+  letter-spacing:.01em;
+  text-align:left;
+  border:1px solid transparent;
+  cursor:pointer;
+  /* Transition for hover — stagger handled separately */
+  transition:color .18s, background .18s, border-color .18s, transform .18s;
+  -webkit-tap-highlight-color:transparent;
+  /* 44px min touch target */
+  min-height:44px;
 }
-.nav-mobile-link:hover{color:var(--text);background:var(--card);}
-.nav-mobile-cta{
-  margin-top:8px;padding:14px 20px;border-radius:12px;
-  background:linear-gradient(135deg,var(--blue),var(--purple));
-  color:#fff;font-size:13px;font-weight:700;text-align:center;
+/* Number badge */
+.nav-mobile-num{
   font-family:var(--font-mono);
+  font-size:10px;font-weight:700;
+  color:rgba(255,255,255,.2);
+  letter-spacing:.1em;
+  min-width:20px;
+  transition:color .18s;
+}
+.nav-mobile-link:hover{
+  color:var(--text);
+  background:rgba(255,255,255,.04);
+  border-color:rgba(255,255,255,.07);
+  transform:translateX(3px);
+}
+.nav-mobile-link:hover .nav-mobile-num{
+  color:var(--blue);
+}
+.nav-mobile-link:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:2px;
+}
+.nav-mobile-link.is-active{
+  color:var(--blue);
+  background:rgba(79,134,247,.08);
+  border-color:rgba(79,134,247,.15);
+}
+.nav-mobile-link.is-active .nav-mobile-num{
+  color:var(--blue);
+}
+
+/* ── Divider ── */
+.nav-mobile-divider{
+  height:1px;
+  background:rgba(255,255,255,.06);
+  margin:6px 14px;
+  flex-shrink:0;
+}
+
+/* ── CTA button ── */
+.nav-mobile-footer{
+  padding:16px 20px;
+  padding-bottom:max(20px, env(safe-area-inset-bottom));
+  flex-shrink:0;
+}
+.nav-mobile-cta{
+  display:block;width:100%;
+  padding:15px 20px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff;
+  font-family:var(--font-body);
+  font-size:14px;font-weight:700;
+  text-align:center;
+  letter-spacing:.03em;
+  box-shadow:0 8px 24px rgba(79,134,247,.28);
+  transition:transform .2s, box-shadow .2s, opacity .2s;
+  -webkit-tap-highlight-color:transparent;
+  cursor:pointer;
+}
+.nav-mobile-cta:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 32px rgba(79,134,247,.42);
+}
+.nav-mobile-cta:active{
+  transform:scale(.97);
+  opacity:.9;
+}
+.nav-mobile-cta:focus-visible{
+  outline:2px solid #fff;
+  outline-offset:2px;
+}
+
+/* ── Stagger animation (items slide in from right) ── */
+.nav-mobile-link,
+.nav-mobile-divider,
+.nav-mobile-cta{
+  opacity:0;
+  transform:translateX(20px);
+  /* Base transition for stagger */
+  transition:
+    opacity .3s ease,
+    transform .3s cubic-bezier(.23,1,.32,1),
+    color .18s, background .18s, border-color .18s;
+}
+.nav-mobile-menu.is-open .nav-mobile-link,
+.nav-mobile-menu.is-open .nav-mobile-divider,
+.nav-mobile-menu.is-open .nav-mobile-cta{
+  opacity:1;
+  transform:translateX(0);
+}
+/* Stagger delays — nth-of-type doesn't work across different elements,
+   use data-index pattern instead */
+.nav-mobile-menu.is-open [data-mdelay="1"]{ transition-delay:.06s; }
+.nav-mobile-menu.is-open [data-mdelay="2"]{ transition-delay:.11s; }
+.nav-mobile-menu.is-open [data-mdelay="3"]{ transition-delay:.16s; }
+.nav-mobile-menu.is-open [data-mdelay="4"]{ transition-delay:.20s; }
+.nav-mobile-menu.is-open [data-mdelay="5"]{ transition-delay:.24s; }
+.nav-mobile-menu.is-open [data-mdelay="6"]{ transition-delay:.27s; }
+.nav-mobile-menu.is-open [data-mdelay="7"]{ transition-delay:.30s; }
+.nav-mobile-menu.is-open [data-mdelay="8"]{ transition-delay:.34s; }
+/* Reset delays on close — instant invisible */
+.nav-mobile-menu:not(.is-open) .nav-mobile-link,
+.nav-mobile-menu:not(.is-open) .nav-mobile-divider,
+.nav-mobile-menu:not(.is-open) .nav-mobile-cta{
+  transition-delay:0s!important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1311,7 +1554,7 @@ nav, .track-mini, .store-pill, .est-icon, .hero-stats-mini{
 
 /* ── Nav */
 nav{ padding:0 var(--sp-edge); }
-/* On mobile: logo on left, hamburger pushed to far right */
+/* Mobile: logo left, hamburger right — hamburger visible only on mobile */
 .nav-inner{ justify-content:space-between; }
 .nav-links{ display:none; }
 .nav-cta{ display:none; }
@@ -1504,10 +1747,13 @@ img { decoding: async; }
   /* Nav → desktop */
   nav{ padding:0 var(--sp-edge); }
   .nav-inner{ justify-content:flex-start; }
+  /* Desktop nav — hamburger hidden, links + CTA visible */
   .nav-hamburger{ display:none; }
   .nav-links{ display:flex; justify-content:center; flex:1; }
   .nav-cta{ display:block; }
-  .nav-mobile-menu{ display:none!important; }
+  /* Mobile menu is hidden via transform/visibility — no display:none needed */
+  .nav-mobile-menu{ visibility:hidden!important; transform:translateX(100%)!important; }
+  .nav-overlay{ visibility:hidden!important; opacity:0!important; }
 
   /* Hero */
   #hero{ padding:120px var(--sp-edge) 96px; }
@@ -1691,19 +1937,74 @@ img { decoding: async; }
       <button class="nav-link" data-target="contacto">Contacto</button>
     </div>
     <button class="nav-cta" onclick="scrollTo('acceso')">Invertir ahora →</button>
-    <button class="nav-hamburger" id="hamburger" aria-label="Menú">
-      <span></span><span></span><span></span>
+    <button
+      class="nav-hamburger"
+      id="nav-hamburger"
+      aria-label="Abrir menú de navegación"
+      aria-expanded="false"
+      aria-controls="nav-mobile-menu"
+      type="button">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
     </button>
   </div>
 </nav>
-<div class="nav-mobile-menu" id="mobileMenu">
-  <button class="nav-mobile-link" onclick="mobileNav('track')">Track Record</button>
-  <button class="nav-mobile-link" onclick="mobileNav('cartera')">Cartera</button>
-  <button class="nav-mobile-link" onclick="mobileNav('equipo')">Equipo</button>
-  <button class="nav-mobile-link" onclick="mobileNav('estrategia')">Estrategia</button>
-  <button class="nav-mobile-link" onclick="mobileNav('contacto')">Contacto</button>
-  <button class="nav-mobile-cta" onclick="mobileNav('acceso')">Invertir ahora →</button>
+
+<!-- ── Backdrop overlay ── -->
+<div
+  class="nav-overlay"
+  id="nav-overlay"
+  aria-hidden="true"
+  tabindex="-1">
 </div>
+
+<!-- ── Mobile drawer ── -->
+<nav
+  class="nav-mobile-menu"
+  id="nav-mobile-menu"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Menú principal"
+  aria-hidden="true"
+  inert>
+
+  <!-- Drawer header -->
+  <div class="nav-mobile-header">
+    <span class="nav-mobile-brand" aria-hidden="true">
+      <span class="nav-mobile-brand-dot"></span>
+      Ciclo Nova
+    </span>
+    <button
+      class="nav-mobile-close"
+      id="nav-mobile-close"
+      aria-label="Cerrar menú"
+      type="button">
+      ✕
+    </button>
+  </div>
+
+  <!-- Nav links -->
+  <ul class="nav-mobile-list" role="list">
+    <li><button class="nav-mobile-link" data-target="track"      data-mdelay="1" type="button"><span class="nav-mobile-num" aria-hidden="true">01</span>Track Record</button></li>
+    <li><button class="nav-mobile-link" data-target="cartera"    data-mdelay="2" type="button"><span class="nav-mobile-num" aria-hidden="true">02</span>Cartera</button></li>
+    <li><button class="nav-mobile-link" data-target="equipo"     data-mdelay="3" type="button"><span class="nav-mobile-num" aria-hidden="true">03</span>Equipo</button></li>
+    <li><button class="nav-mobile-link" data-target="estrategia" data-mdelay="4" type="button"><span class="nav-mobile-num" aria-hidden="true">04</span>Estrategia</button></li>
+    <li><button class="nav-mobile-link" data-target="operatoria" data-mdelay="5" type="button"><span class="nav-mobile-num" aria-hidden="true">05</span>Operatoria</button></li>
+    <li><button class="nav-mobile-link" data-target="acceso"     data-mdelay="6" type="button"><span class="nav-mobile-num" aria-hidden="true">06</span>Cómo invertir</button></li>
+    <li><button class="nav-mobile-link" data-target="contacto"   data-mdelay="7" type="button"><span class="nav-mobile-num" aria-hidden="true">07</span>Contacto</button></li>
+  </ul>
+
+  <div class="nav-mobile-divider" data-mdelay="8" aria-hidden="true"></div>
+
+  <!-- CTA -->
+  <div class="nav-mobile-footer">
+    <button class="nav-mobile-cta" data-mdelay="8" onclick="mobileNav('acceso')" type="button">
+      Invertir ahora →
+    </button>
+  </div>
+
+</nav>
 
 <!-- ══ HERO ══════════════════════════════════════════════════════ -->
 <section id="hero">
@@ -2470,27 +2771,161 @@ const sObserver = new IntersectionObserver(entries=>{
 secIds.forEach(id=>{const el=document.getElementById(id);if(el)sObserver.observe(el);});
 navLinks.forEach(b=>b.addEventListener('click',()=>scrollTo(b.dataset.target)));
 
-// ── HAMBURGER ──────────────────────────────────────────────────────
-const hamburger = document.getElementById('hamburger');
-const mobileMenu = document.getElementById('mobileMenu');
-function closeMobileMenu(){
-  hamburger.classList.remove('open');
-  mobileMenu.classList.remove('open');
-}
-hamburger.addEventListener('click',()=>{
-  hamburger.classList.toggle('open');
-  mobileMenu.classList.toggle('open');
-});
-function mobileNav(id){
-  closeMobileMenu();
-  scrollTo(id);
-}
-// Close on outside click
-document.addEventListener('click',e=>{
-  if(!hamburger.contains(e.target)&&!mobileMenu.contains(e.target)) closeMobileMenu();
-});
-// Close on resize to desktop
-window.addEventListener('resize',()=>{if(window.innerWidth>=768) closeMobileMenu();},{passive:true});
+// ══════════════════════════════════════════════════════════════════
+// HAMBURGER MENU — best practices implementation
+// ✓ CSS transform/visibility transitions (no display:none toggle)
+// ✓ body scroll-lock (position:fixed pattern, preserves scroll pos)
+// ✓ ARIA: aria-expanded, aria-hidden, inert attribute
+// ✓ Focus trap (Tab cycles inside open menu)
+// ✓ Escape key closes menu
+// ✓ Close on overlay click
+// ✓ Close on nav link click
+// ✓ Active state synced with IntersectionObserver
+// ✓ Resize to desktop auto-closes
+// ══════════════════════════════════════════════════════════════════
+(function(){
+  const hamburgerBtn  = document.getElementById('nav-hamburger');
+  const closeBtn      = document.getElementById('nav-mobile-close');
+  const overlay       = document.getElementById('nav-overlay');
+  const drawer        = document.getElementById('nav-mobile-menu');
+  const mobileLinks   = drawer.querySelectorAll('.nav-mobile-link[data-target]');
+
+  if (!hamburgerBtn || !drawer) return; // guard
+
+  let scrollY = 0; // remember scroll position for body-fix pattern
+
+  // ── Open ──────────────────────────────────────────────────────────
+  function openMenu() {
+    // scroll lock: save position, fix body
+    scrollY = window.scrollY;
+    document.body.style.top = `-${scrollY}px`;
+    document.body.classList.add('menu-open');
+
+    // ARIA
+    hamburgerBtn.setAttribute('aria-expanded', 'true');
+    hamburgerBtn.setAttribute('aria-label', 'Cerrar menú de navegación');
+    overlay.setAttribute('aria-hidden', 'false');
+    drawer.setAttribute('aria-hidden', 'false');
+    drawer.removeAttribute('inert');
+
+    // Visual
+    hamburgerBtn.classList.add('open'); // legacy compat
+    overlay.classList.add('is-open');
+    drawer.classList.add('is-open');
+
+    // Focus first focusable element in drawer after transition
+    setTimeout(() => {
+      const first = getFocusables()[0];
+      if (first) first.focus();
+    }, 100);
+  }
+
+  // ── Close ─────────────────────────────────────────────────────────
+  function closeMenu() {
+    // restore scroll
+    document.body.classList.remove('menu-open');
+    document.body.style.top = '';
+    window.scrollTo(0, scrollY);
+
+    // ARIA
+    hamburgerBtn.setAttribute('aria-expanded', 'false');
+    hamburgerBtn.setAttribute('aria-label', 'Abrir menú de navegación');
+    overlay.setAttribute('aria-hidden', 'true');
+    drawer.setAttribute('aria-hidden', 'true');
+    drawer.setAttribute('inert', '');
+
+    // Visual
+    hamburgerBtn.classList.remove('open');
+    overlay.classList.remove('is-open');
+    drawer.classList.remove('is-open');
+
+    // Return focus to hamburger
+    hamburgerBtn.focus();
+
+    // Refresh ScrollTrigger — position:fixed during menu-open
+    // can shift element positions; recalculate after restore
+    if (typeof ScrollTrigger !== 'undefined') {
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+    }
+  }
+
+  function isOpen() {
+    return hamburgerBtn.getAttribute('aria-expanded') === 'true';
+  }
+
+  // ── Focus trap ────────────────────────────────────────────────────
+  function getFocusables() {
+    return Array.from(drawer.querySelectorAll(
+      'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => !el.closest('[inert]') && el.offsetParent !== null);
+  }
+
+  drawer.addEventListener('keydown', e => {
+    if (!isOpen()) return;
+    const focusables = getFocusables();
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last  = focusables[focusables.length - 1];
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
+      }
+    }
+  });
+
+  // ── Escape key ────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isOpen()) closeMenu();
+  });
+
+  // ── Toggle on hamburger click ─────────────────────────────────────
+  hamburgerBtn.addEventListener('click', () => {
+    isOpen() ? closeMenu() : openMenu();
+  });
+
+  // ── Close button ─────────────────────────────────────────────────
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+
+  // ── Overlay click ─────────────────────────────────────────────────
+  overlay.addEventListener('click', closeMenu);
+
+  // ── Mobile link click ─────────────────────────────────────────────
+  mobileLinks.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      closeMenu();
+      // Small delay so scroll-lock is released before scrollTo
+      setTimeout(() => scrollTo(target), 50);
+    });
+  });
+
+  // ── Sync active state from desktop IntersectionObserver ──────────
+  // Watch for active class changes on desktop links and mirror to mobile
+  const desktopLinks = document.querySelectorAll('.nav-link[data-target]');
+  const activeObserver = new MutationObserver(() => {
+    desktopLinks.forEach(dl => {
+      const target = dl.dataset.target;
+      const mbl = drawer.querySelector(`.nav-mobile-link[data-target="${target}"]`);
+      if (mbl) mbl.classList.toggle('is-active', dl.classList.contains('active'));
+    });
+  });
+  desktopLinks.forEach(dl => {
+    activeObserver.observe(dl, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // ── Close on resize to desktop ────────────────────────────────────
+  const mql = window.matchMedia('(min-width: 768px)');
+  mql.addEventListener('change', e => { if (e.matches && isOpen()) closeMenu(); });
+
+  // ── Legacy global function (used by nav-mobile-cta onclick) ──────
+  window.mobileNav = function(id) {
+    closeMenu();
+    setTimeout(() => scrollTo(id), 50);
+  };
+
+})();
 
 // ── TICKER ─────────────────────────────────────────────────────────
 (function(){
@@ -2504,148 +2939,11 @@ window.addEventListener('resize',()=>{if(window.innerWidth>=768) closeMobileMenu
   track.innerHTML=html;
 })();
 
-// ── SCROLL REVEAL — GSAP ScrollTrigger ────────────────────────────
-gsap.registerPlugin(ScrollTrigger);
 
-// Respect prefers-reduced-motion
-const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Detect mobile for lighter animations
-const isMobile = window.innerWidth < 768;
-
-if (!prefersReduced) {
-  // Helper: stagger index from d1–d8 classes
-  function getDelay(el) {
-    for (let i = 8; i >= 1; i--) {
-      if (el.classList.contains('d' + i)) return i * (isMobile ? 0.06 : 0.08);
-    }
-    return 0;
-  }
-
-  // On mobile, reduce translation distances to avoid jank
-  const xDist  = isMobile ? 22 : 36;
-  const yDist  = isMobile ? 18 : 24;
-  const scalePop = isMobile ? 0.93 : 0.88;
-  const scaleS   = isMobile ? 0.98 : 0.96;
-
-  // Trigger threshold — on mobile start a bit earlier so elements
-  // don't pop in all at once when the page loads
-  const triggerStart = isMobile ? 'top 95%' : 'top 88%';
-
-  // Config per class
-  const configs = [
-    {
-      sel: '.reveal',
-      from: { opacity: 0, y: yDist },
-      to:   { opacity: 1, y: 0, duration: isMobile ? 0.65 : 0.85, ease: 'power3.out' }
-    },
-    {
-      sel: '.reveal-left',
-      from: { opacity: 0, x: -xDist },
-      to:   { opacity: 1, x: 0, duration: isMobile ? 0.6 : 0.8, ease: 'power3.out' }
-    },
-    {
-      sel: '.reveal-right',
-      from: { opacity: 0, x: xDist },
-      to:   { opacity: 1, x: 0, duration: isMobile ? 0.6 : 0.8, ease: 'power3.out' }
-    },
-    {
-      sel: '.reveal-s',
-      from: { opacity: 0, y: yDist * 0.7, scale: scaleS },
-      to:   { opacity: 1, y: 0, scale: 1, duration: isMobile ? 0.7 : 0.9, ease: 'power2.out' }
-    },
-    {
-      sel: '.reveal-pop',
-      from: { opacity: 0, scale: scalePop },
-      to:   { opacity: 1, scale: 1, duration: isMobile ? 0.55 : 0.7, ease: 'back.out(1.2)' }
-    }
-  ];
-
-  configs.forEach(({ sel, from, to }) => {
-    document.querySelectorAll(sel).forEach(el => {
-      // Set initial state via GSAP (overrides CSS)
-      gsap.set(el, from);
-
-      const delay = getDelay(el);
-
-      ScrollTrigger.create({
-        trigger: el,
-        start: triggerStart,
-        once: true,
-        onEnter: () => {
-          // Set will-change just before animating, clear after
-          el.style.willChange = 'transform, opacity';
-          gsap.to(el, {
-            ...to,
-            delay,
-            onComplete: () => { el.style.willChange = 'auto'; }
-          });
-        }
-      });
-    });
-  });
-
-  // ── ASSETS left-to-right stagger (est-grid, ops-grid, step-card) ──
-  // Group grid children and animate them left→right in sequence
-  const staggerGrids = [
-    { parent: '#estrategia .est-grid',  cls: '.est-card',   axis: 'x', dist: isMobile ? 24 : 40, dur: isMobile ? 0.6 : 0.75 },
-    { parent: '#operatoria .ops-grid',  cls: '.ops-card',   axis: 'x', dist: isMobile ? 20 : 32, dur: isMobile ? 0.55 : 0.65 },
-    { parent: '#acceso .steps',         cls: '.step-card',  axis: 'x', dist: isMobile ? 20 : 36, dur: isMobile ? 0.55 : 0.65 },
-    { parent: '#track .track-grid',     cls: '.track-mini', axis: 'x', dist: isMobile ? 20 : 32, dur: isMobile ? 0.55 : 0.65 },
-    { parent: '#cartera .cartera-card', cls: '.legend-row', axis: 'x', dist: isMobile ? 16 : 28, dur: isMobile ? 0.5 : 0.6 },
-    { parent: '#equipo .comite-grid',   cls: '.comite-card',axis: 'x', dist: isMobile ? 18 : 30, dur: isMobile ? 0.55 : 0.65 },
-    { parent: '#equipo .equipo-stats',  cls: '.equipo-stat',axis: 'x', dist: isMobile ? 16 : 24, dur: isMobile ? 0.5 : 0.6 },
-  ];
-
-  staggerGrids.forEach(({ parent, cls, axis, dist, dur }) => {
-    const parentEl = document.querySelector(parent);
-    if (!parentEl) return;
-    const items = parentEl.querySelectorAll(cls);
-    if (!items.length) return;
-
-    // Only apply if items don't already have a reveal class (avoid double animation)
-    const unmanaged = Array.from(items).filter(el =>
-      !el.classList.contains('reveal') &&
-      !el.classList.contains('reveal-left') &&
-      !el.classList.contains('reveal-right') &&
-      !el.classList.contains('reveal-s') &&
-      !el.classList.contains('reveal-pop')
-    );
-    if (!unmanaged.length) return;
-
-    const fromProps = axis === 'x'
-      ? { opacity: 0, x: -dist }
-      : { opacity: 0, y: dist };
-    const toProps = axis === 'x'
-      ? { opacity: 1, x: 0 }
-      : { opacity: 1, y: 0 };
-
-    gsap.set(unmanaged, fromProps);
-
-    ScrollTrigger.create({
-      trigger: parentEl,
-      start: triggerStart,
-      once: true,
-      onEnter: () => {
-        unmanaged.forEach(el => { el.style.willChange = 'transform, opacity'; });
-        gsap.to(unmanaged, {
-          ...toProps,
-          duration: dur,
-          ease: 'power3.out',
-          stagger: isMobile ? 0.07 : 0.09,
-          onComplete: () => {
-            unmanaged.forEach(el => { el.style.willChange = 'auto'; });
-          }
-        });
-      }
-    });
-  });
-
-  ScrollTrigger.refresh();
-}
-
-// ── COUNT-UP ───────────────────────────────────────────────────────
+// ── COUNT-UP HERO (página carga) ───────────────────────────────────
 function countUp(el,target,dur,dec,pre,suf){
+  if(!el) return;
   let start=null;
   const tick=ts=>{
     if(!start)start=ts;
@@ -2659,21 +2957,6 @@ setTimeout(()=>{
   countUp($('hero-usd'),12.28,1800,2,'+','%');
   countUp($('hero-pesos'),16.66,1800,2,'+','%');
 },600);
-
-let trackDone=false;
-const tObs=new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting&&!trackDone){
-    trackDone=true;
-    countUp($('track-usd'),12.28,1800,2,'+','%');
-    countUp($('track-pesos'),16.66,1800,2,'+','%');
-    countUp($('track-tbill'),2.21,1500,2,'+','%');
-    document.querySelectorAll('.bar-fill').forEach((b,i)=>{
-      setTimeout(()=>{b.style.width=b.dataset.w+'%';},i*130+200);
-    });
-    tObs.disconnect();
-  }
-},{threshold:.25});
-const ts=document.getElementById('track');if(ts)tObs.observe(ts);
 
 // ── CARTERA INTERACTIVE DONUT ──────────────────────────────────
 (function(){
@@ -2996,11 +3279,177 @@ $('contact-form').addEventListener('submit',e=>{
   s.style.animation='fadeUp .5s ease forwards';
 });
 
-// ── Refresh ScrollTrigger after all dynamic content is injected ──
-// The comite/estrategia/ops grids are populated above via innerHTML,
-// so ScrollTrigger needs one final refresh to pick them up correctly.
+// ══════════════════════════════════════════════════════════════════
+// SCROLL ANIMATIONS — definitive clean version
+// ══════════════════════════════════════════════════════════════════
+gsap.registerPlugin(ScrollTrigger);
+
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// isMob() evaluated fresh each time — never cached at parse time
+function isMob() { return window.innerWidth < 768; }
+
+// Mobile needs more generous trigger (elements are taller, viewport shorter)
+function trigStart() { return isMob() ? 'top 99%' : 'top 90%'; }
+
+if (!prefersReduced) {
+
+  // Helper: create a simple scroll-triggered fade+slide animation
+  function revealEl(el, fromProps, toProps, triggerEl) {
+    if (!el) return;
+    gsap.set(el, { opacity: 0, ...fromProps });
+    gsap.to(el, {
+      opacity: 1, ...toProps,
+      scrollTrigger: { trigger: triggerEl || el, start: trigStart(), once: true }
+    });
+  }
+
+  // ── 1. Section headers (label + title + sub) ──────────────────────
+  // Animate each element individually — never hide the parent wrapper
+  document.querySelectorAll('.section-label').forEach(el =>
+    revealEl(el, { y: 12 }, { y: 0, duration: 0.45, ease: 'power2.out' })
+  );
+  document.querySelectorAll('.section-title').forEach(el =>
+    revealEl(el, { y: isMob() ? 18 : 26 }, { y: 0, duration: isMob() ? 0.6 : 0.75, ease: 'power3.out' })
+  );
+  document.querySelectorAll('.section-sub').forEach(el =>
+    revealEl(el, { y: 10 }, { y: 0, duration: 0.5, ease: 'power2.out' })
+  );
+
+  // ── 2. Track Record ───────────────────────────────────────────────
+  const trackHero = document.querySelector('#track .track-hero');
+  const trackMinis = document.querySelectorAll('#track .track-mini');
+  const compareCard = document.querySelector('#track .compare-card');
+  const feeCard = document.querySelector('#track .fee-card');
+  const barFills = document.querySelectorAll('#track .bar-fill');
+
+  if (trackHero) {
+    gsap.set(trackHero, { opacity: 0, y: 32 });
+    gsap.to(trackHero, {
+      opacity: 1, y: 0, duration: 0.85, ease: 'power3.out',
+      scrollTrigger: {
+        trigger: trackHero, start: trigStart(), once: true,
+        onEnter: () => {
+          countUp($('track-usd'),   12.28, 1600, 2, '+', '%');
+          countUp($('track-pesos'), 16.66, 1600, 2, '+', '%');
+          countUp($('track-tbill'),  2.21, 1400, 2, '+', '%');
+          barFills.forEach((b, i) =>
+            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 110 + 300));
+        }
+      }
+    });
+  }
+  trackMinis.forEach((el, i) => revealEl(el, { x: 24 }, { x: 0, duration: 0.6, ease: 'power3.out', delay: i * 0.08 }, trackHero));
+  if (compareCard) revealEl(compareCard, { y: 20 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+  if (feeCard) revealEl(feeCard, { y: 20 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+
+  // ── 3. Cartera ────────────────────────────────────────────────────
+  const donutWrap = document.querySelector('#cartera .donut-wrap');
+  const legendRows = document.querySelectorAll('#cartera .legend-row');
+  const barFillsC  = document.querySelectorAll('#cartera .legend-bar-fill');
+  if (donutWrap) {
+    gsap.set(donutWrap, { opacity: 0, scale: 0.9 });
+    gsap.to(donutWrap, {
+      opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)',
+      scrollTrigger: {
+        trigger: donutWrap, start: trigStart(), once: true,
+        onEnter: () => barFillsC.forEach((b, i) =>
+          setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 40 + 400))
+      }
+    });
+  }
+  legendRows.forEach((el, i) => revealEl(el, { x: -20 }, { x: 0, duration: 0.45, ease: 'power3.out', delay: i * 0.04 }, donutWrap));
+
+  // ── 4. Equipo ─────────────────────────────────────────────────────
+  const equipoHero = document.querySelector('#equipo .equipo-hero');
+  const comiteGrid = document.querySelector('#equipo .comite-grid');
+  const comiteCards = document.querySelectorAll('#equipo .comite-card');
+  const equipoStats = document.querySelectorAll('#equipo .equipo-stat');
+  if (equipoHero) revealEl(equipoHero, { y: 28 }, { y: 0, duration: 0.8, ease: 'power3.out' });
+  equipoStats.forEach((el, i) => revealEl(el, { y: 16 }, { y: 0, duration: 0.5, ease: 'power2.out', delay: i * 0.07 }, equipoHero));
+  comiteCards.forEach((el, i) => {
+    gsap.set(el, { opacity: 0, y: 20, scale: 0.97 });
+    gsap.to(el, {
+      opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out', delay: i * 0.07,
+      scrollTrigger: { trigger: comiteGrid || el, start: trigStart(), once: true }
+    });
+  });
+
+  // ── 5. Estrategia ─────────────────────────────────────────────────
+  const estGrid = document.querySelector('#estrategia .est-grid');
+  document.querySelectorAll('#estrategia .est-card').forEach((el, i) => {
+    gsap.set(el, { opacity: 0, y: 24, scale: 0.95 });
+    gsap.to(el, {
+      opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'power3.out', delay: i * 0.1,
+      scrollTrigger: { trigger: estGrid || el, start: trigStart(), once: true }
+    });
+  });
+
+  // ── 6. Operatoria ─────────────────────────────────────────────────
+  const opsGrid = document.querySelector('#operatoria .ops-grid');
+  document.querySelectorAll('#operatoria .ops-card').forEach((el, i) => {
+    gsap.set(el, { opacity: 0, scale: 0.88 });
+    gsap.to(el, {
+      opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(1.4)', delay: i * 0.07,
+      scrollTrigger: { trigger: opsGrid || el, start: trigStart(), once: true }
+    });
+  });
+  const feeBox = document.querySelector('#operatoria .fee-box');
+  if (feeBox) revealEl(feeBox, { y: 20 }, { y: 0, duration: 0.6, ease: 'power2.out' });
+
+  // ── 7. Acceso ─────────────────────────────────────────────────────
+  const stepsEl = document.querySelector('#acceso .steps');
+  document.querySelectorAll('#acceso .step-card').forEach((el, i) => {
+    gsap.set(el, { opacity: 0, x: isMob() ? -16 : -28 });
+    gsap.to(el, {
+      opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: i * 0.12,
+      scrollTrigger: { trigger: stepsEl || el, start: trigStart(), once: true }
+    });
+  });
+  const storeRow = document.querySelector('#acceso .store-row');
+  if (storeRow) revealEl(storeRow, { y: 18 }, { y: 0, duration: 0.6, ease: 'back.out(1.2)' });
+
+  // ── 8. Contacto ───────────────────────────────────────────────────
+  const contactCard = document.querySelector('#contacto .contact-card');
+  if (contactCard) revealEl(contactCard, { y: 28 }, { y: 0, duration: 0.8, ease: 'power3.out' });
+
+  // ── 9. Grupo IEB pills ────────────────────────────────────────────
+  const pillsParent = document.querySelector('#grupo-ieb');
+  document.querySelectorAll('#grupo-ieb .ieb-logo-pill').forEach((el, i) => {
+    gsap.set(el, { opacity: 0, y: 14, scale: 0.94 });
+    gsap.to(el, {
+      opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.2)', delay: i * 0.05,
+      scrollTrigger: { trigger: pillsParent || el, start: trigStart(), once: true }
+    });
+  });
+
+  // Initial refresh
+  ScrollTrigger.refresh();
+
+} // end if(!prefersReduced)
+
+// ── Final refresh after fonts + dynamic content ───────────────────
+// Fonts change element heights → wrong trigger positions.
+// document.fonts.ready fires after all font loads, then we refresh.
 if(!prefersReduced){
-  requestAnimationFrame(()=>{ ScrollTrigger.refresh(); });
+  // rAF ensures DOM paint is done after dynamic grid injection
+  requestAnimationFrame(() => {
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        ScrollTrigger.refresh();
+      });
+    } else {
+      // Fallback: wait 400ms for fonts
+      setTimeout(() => ScrollTrigger.refresh(), 400);
+    }
+  });
+
+  // Extra safety refresh on resize (also fixes landscape↔portrait swap)
+  let _refreshTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(_refreshTimer);
+    _refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 250);
+  }, { passive: true });
 }
 </script>
 
