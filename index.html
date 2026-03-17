@@ -1,22 +1,10 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8">
+<!-- saved from url=(0059)file:///C:/Users/desig/Downloads/ciclo-nova-redesign_3.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ciclo Nova · FCI · Grupo IEB</title>
-
-<!-- Preconnect for faster font loading -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<!-- Non-blocking font load: media=print trick swaps to all after load -->
-<link rel="preconnect" href="https://api.fontshare.com">
-<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400,300&display=swap" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
-<noscript>
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400,300&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
-</noscript>
-
+<link href="./ciclo nova_files/css2" rel="stylesheet">
 <style>
 
 /* ═══════════════════════════════════════════════════════════════
@@ -40,14 +28,14 @@
   --green:       #22D3A5;
   --green-glow:  rgba(34,211,165,0.28);
 
-  --text:        #F0EEFF;
-  --sub:         #C4C0DC;
-  --muted:       #8A85A8;
+  --text:        #F2F0FF;
+  --sub:         #B8B4D0;
+  --muted:       #6A6485;
   --dimmer:      rgba(240,238,255,0.10);
 
-  --font-display: 'Unbounded', system-ui, sans-serif;
-  --font-body:    'Satoshi', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', system-ui, monospace;
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'Montserrat', system-ui, sans-serif;
 
   --radius-sm:  10px;
   --radius-md:  18px;
@@ -65,12 +53,7 @@ body{
   background:var(--bg);
   color:var(--text);
   overflow-x:hidden;
-  line-height:1.7;
-  /* Improve text rendering on all screens */
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  text-rendering:optimizeLegibility;
-  font-feature-settings:'kern' 1,'liga' 1,'tnum' 1,'cv05' 1;
+  line-height:1.6;
 }
 a{text-decoration:none;color:inherit}
 button{cursor:pointer;font-family:var(--font-body);border:none;background:none}
@@ -98,11 +81,7 @@ body::before{
 #progress{
   position:fixed;top:0;left:0;height:2px;width:0%;
   background:linear-gradient(90deg,var(--blue),var(--purple),var(--green));
-  z-index:500;
-  /* Use transform instead of width for smoother updates — but width
-     is needed for the gradient effect, so at least promote to own layer */
-  will-change:width;
-  transform:translateZ(0);
+  z-index:500;transition:width .08s linear;
   box-shadow:0 0 10px var(--blue-glow);
 }
 
@@ -126,6 +105,7 @@ nav.scrolled{
 .nav-inner{
   max-width:1180px;width:100%;margin:0 auto;
   display:flex;align-items:center;gap:0;
+  justify-content:space-between;
 }
 /* ── Logo ── */
 .nav-logo{
@@ -147,7 +127,7 @@ nav.scrolled{
 }
 .nav-logo-text{display:flex;flex-direction:column;gap:1px;}
 .nav-logo-name{
-  font-family:var(--font-display);font-weight:700;font-size:15px;
+  font-family:var(--font-display);font-weight:800;font-size:15px;
   letter-spacing:-.4px;color:var(--text);line-height:1;
 }
 .nav-logo-sup{
@@ -165,7 +145,7 @@ nav.scrolled{
   padding:7px 13px;border-radius:7px;
   color:var(--muted);font-size:12px;font-weight:600;
   letter-spacing:.2px;transition:color .18s,background .18s;
-  font-family:var(--font-mono);white-space:nowrap;font-size:11px;
+  font-family:var(--font-mono);white-space:nowrap;
 }
 .nav-link:hover{color:var(--text);background:rgba(255,255,255,.05);}
 .nav-link.active{color:var(--blue);background:rgba(79,134,247,.08);}
@@ -182,7 +162,13 @@ nav.scrolled{
 }
 .nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--blue-glow);}
 
-/* Bricolage Grotesque has correct descender metrics — no overflow fix needed */
+/* Global descender fix for display font */
+[style*="font-family"],
+.hero-wordmark,.section-title,.track-main-num,.est-num,
+.equipo-name,.comite-name,.est-title,.ops-val,.fee-box-title,
+.hsm-val,.track-mini-val,.bar-val,.legend-pct{
+  overflow:visible;
+}
 
 #hero{
   position:relative;min-height:100vh;
@@ -200,11 +186,6 @@ nav.scrolled{
 .nebula-b{width:700px;height:700px;background:radial-gradient(circle,rgba(123,82,255,.11),transparent 70%);bottom:-12%;left:-10%;animation:nbPulse 10s ease-in-out infinite .5s;}
 .nebula-c{width:500px;height:500px;background:radial-gradient(circle,rgba(34,211,165,.08),transparent 70%);top:30%;left:55%;animation:nbPulse 7s ease-in-out infinite 2s;}
 @keyframes nbPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.12);opacity:1}}
-/* On mobile: disable nebula animation and reduce blur to save GPU */
-@media(max-width:767px){
-  .nebula{filter:blur(60px);animation:none!important;}
-  .nebula-c{display:none;}
-}
 
 .hero-content{position:relative;z-index:2;max-width:960px;display:flex;flex-direction:column;align-items:center;}
 
@@ -220,12 +201,14 @@ nav.scrolled{
 
 /* ── Wordmark ── */
 .hero-wordmark{
-  font-family:var(--font-display);font-weight:700;
-  font-size:clamp(40px,11vw,68px);
-  letter-spacing:-1px;
-  line-height:1.1;
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(52px,15vw,80px);
+  letter-spacing:-3px;
+  line-height:1.2;
+  padding-bottom:.15em;
   color:var(--text);margin-bottom:12px;
   position:relative;z-index:2;
+  overflow:visible;
   display:block;
   opacity:0;animation:fadeUp .9s .1s cubic-bezier(.22,1,.36,1) forwards;
   text-shadow:0 0 100px rgba(123,82,255,.18),0 0 200px rgba(79,134,247,.1);
@@ -234,8 +217,7 @@ nav.scrolled{
 /* ── Tagline ── */
 .hero-tagline{
   font-size:15px;
-  color:var(--sub);font-weight:400;line-height:1.75;
-  letter-spacing:.01em;
+  color:var(--sub);font-weight:400;line-height:1.6;
   margin-bottom:28px;position:relative;z-index:2;
   opacity:0;animation:fadeUp .8s .28s cubic-bezier(.22,1,.36,1) forwards;
 }
@@ -282,7 +264,7 @@ nav.scrolled{
   transition:background .2s;cursor:default;
 }
 .hsm-item:hover{background:rgba(79,134,247,.06);}
-.hsm-val{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-1px;line-height:1.2;padding-bottom:.08em;}
+.hsm-val{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-1px;line-height:1.2;padding-bottom:.08em;}
 .hsm-lbl{font-size:9px;font-family:var(--font-mono);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
 .hsm-sep{width:1px;height:36px;background:var(--border);flex-shrink:0;}
 
@@ -310,8 +292,8 @@ nav.scrolled{
 .ticker-item{
   display:inline-flex;align-items:center;gap:0;
   padding:0 24px;
-  font-size:9.5px;font-family:var(--font-mono);font-weight:600;
-  letter-spacing:2px;text-transform:uppercase;
+  font-size:10px;font-family:var(--font-mono);font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
 }
 .ticker-sep{width:3px;height:3px;border-radius:50%;background:var(--border);margin-left:24px;}
 
@@ -334,91 +316,43 @@ section{padding:80px 20px;box-sizing:border-box;}
   letter-spacing:3.5px;text-transform:uppercase;color:var(--blue);
 }
 .section-title{
-  font-family:var(--font-display);font-weight:700;
-  font-size:clamp(26px,5.5vw,42px);
-  letter-spacing:-.5px;
-  line-height:1.08;
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(34px,7vw,52px);
+  letter-spacing:-2px;
+  line-height:1.05;
   margin-bottom:12px;
+  padding-bottom:.15em;
+  overflow:visible;
 }
 .section-title .accent{
   background:linear-gradient(120deg,var(--blue),var(--purple));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   display:inline-block;
+  padding-bottom:.18em;
   line-height:inherit;
 }
 .section-title .green{color:var(--green);}
-
-.section-sub{font-size:15px;color:var(--sub);margin-bottom:36px;font-weight:400;line-height:1.8;letter-spacing:.01em;}
+.section-title br + .accent,
+.section-title .accent:last-child{
+  padding-bottom:.18em;
+}
+.section-sub{font-size:15px;color:var(--muted);margin-bottom:36px;font-weight:400;line-height:1.75;}
 
 /* ═══════════════════════════════════════════════════════════════
-   REVEAL — CSS sets opacity:0 immediately on page load.
-   This prevents the flash where content appears, then vanishes
-   when GSAP's gsap.set() runs after fonts.ready (up to 2s later).
-   GSAP only handles the entrance animation, not the hide.
-   The .js-ready class is added to <html> before animations init,
-   allowing a no-JS fallback where everything stays visible.
+   REVEAL — initial hidden state (GSAP animates these in)
    ═══════════════════════════════════════════════════════════════ */
-
-/* Hide immediately — before any JS runs */
-.section-title,
-.section-label,
-.section-sub,
-.reveal,
-.reveal-left,
-.reveal-right,
-.reveal-s,
-.reveal-pop {
-  opacity: 0;
+.reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
+  opacity:0;
+  will-change:transform,opacity;
 }
-
-/* No-JS fallback: if JS never runs, show everything */
-.no-js .section-title,
-.no-js .section-label,
-.no-js .section-sub,
-.no-js .reveal,
-.no-js .reveal-left,
-.no-js .reveal-right,
-.no-js .reveal-s,
-.no-js .reveal-pop {
-  opacity: 1 !important;
-}
-
+.reveal{transform:translate3d(0,32px,0);}
+.reveal-left{transform:translate3d(-48px,0,0);}
+.reveal-right{transform:translate3d(48px,0,0);}
+.reveal-s{transform:translate3d(0,24px,0) scale(.96);}
+.reveal-pop{transform:translate3d(0,0,0) scale(.88);}
 @media(prefers-reduced-motion:reduce){
-  .section-title,.section-label,.section-sub,
   .reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop{
     opacity:1!important;transform:none!important;will-change:auto!important;
-  }
-}
-
-/* ── Section-specific animated elements: hidden by CSS immediately ── */
-/* These are NOT .reveal classes but still get animated by GSAP.      */
-/* Same principle: hide now, GSAP reveals on scroll.                   */
-#track .track-hero,
-#track .track-mini,
-#track .compare-card,
-#track .fee-card,
-#cartera .donut-wrap,
-#cartera .legend-row,
-#equipo .equipo-hero,
-#equipo .equipo-stat,
-#equipo .comite-card,
-#estrategia .est-card,
-#operatoria .ops-card,
-#operatoria .fee-box,
-#acceso .step-card,
-#acceso .store-row,
-#contacto .contact-card,
-#grupo-ieb .ieb-logo-pill {
-  opacity: 0;
-}
-@media(prefers-reduced-motion:reduce){
-  #track .track-hero, #track .track-mini, #track .compare-card, #track .fee-card,
-  #cartera .donut-wrap, #cartera .legend-row,
-  #equipo .equipo-hero, #equipo .equipo-stat, #equipo .comite-card,
-  #estrategia .est-card, #operatoria .ops-card, #operatoria .fee-box,
-  #acceso .step-card, #acceso .store-row,
-  #contacto .contact-card, #grupo-ieb .ieb-logo-pill {
-    opacity:1!important;
   }
 }
 
@@ -511,9 +445,10 @@ section{padding:80px 20px;box-sizing:border-box;}
   border-radius:2px;
 }
 .track-main-num{
-  font-family:var(--font-display);font-weight:700;
-  font-size:clamp(52px,9vw,88px);
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(72px,11vw,112px);
   letter-spacing:-5px;line-height:.95;
+  overflow:visible;
   color:var(--green);
   text-shadow:0 0 80px rgba(34,211,165,.45),0 0 200px rgba(34,211,165,.18);
   display:block;
@@ -554,7 +489,7 @@ section{padding:80px 20px;box-sizing:border-box;}
   margin-bottom:12px;line-height:1.4;
 }
 .track-mini-val{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:clamp(24px,3vw,36px);
   letter-spacing:-1.5px;line-height:1;
 }
@@ -577,7 +512,7 @@ section{padding:80px 20px;box-sizing:border-box;}
 }
 .bar-name{font-size:13px;color:var(--sub);font-weight:500;}
 .bar-val{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:15px;letter-spacing:-.5px;
 }
 .bar-track{
@@ -640,7 +575,7 @@ section{padding:80px 20px;box-sizing:border-box;}
   width:100%;text-align:center;
 }
 .donut-header-title{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:clamp(14px,2vw,17px);letter-spacing:-.3px;
   color:var(--text);line-height:1.2;margin-bottom:4px;
 }
@@ -693,7 +628,7 @@ svg.has-selection .donut-seg.active{
   width:130px;
 }
 .donut-center-val{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:28px;letter-spacing:-1.5px;
   color:var(--text);line-height:1;
   transition:color .25s, font-size .2s;
@@ -742,7 +677,7 @@ svg.has-selection .donut-seg.active{
   color:var(--muted);margin-bottom:6px;line-height:1.3;
 }
 .donut-kpi-val{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:clamp(18px,2.5vw,22px);letter-spacing:-1px;
   line-height:1;
 }
@@ -779,7 +714,6 @@ svg.has-selection .donut-seg.active{
 .legend-row.active .legend-dot{ transform:scale(1.4); }
 .legend-name{
   font-size:13px;color:var(--sub);flex:1;font-weight:500;
-  letter-spacing:.01em;
   transition:color .18s;
 }
 .legend-row.active .legend-name{ color:var(--text);font-weight:600; }
@@ -794,7 +728,7 @@ svg.has-selection .donut-seg.active{
 }
 .legend-pct{
   font-family:var(--font-display);font-size:12px;
-  font-weight:700;min-width:38px;text-align:right;
+  font-weight:800;min-width:38px;text-align:right;
   letter-spacing:-.3px;
 }
 
@@ -852,21 +786,20 @@ svg.has-selection .donut-seg.active{
   color:var(--blue);margin-bottom:10px;
 }
 .equipo-name{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:clamp(22px,3.5vw,32px);
   letter-spacing:-1.5px;margin-bottom:14px;
   line-height:1.1;
 }
 .equipo-bio{
-  font-size:14px;color:var(--sub);
-  line-height:1.9;
-  letter-spacing:.01em;
+  font-size:13px;color:var(--sub);
+  line-height:1.85;
   max-width:100%;/* fills available space */
 }
 .equipo-quote{
   margin-top:20px;padding:18px 22px;border-radius:var(--radius-md);
   background:rgba(255,255,255,.03);border-left:2px solid var(--blue);
-  font-size:14px;color:var(--sub);line-height:1.85;font-style:italic;letter-spacing:.01em;
+  font-size:13px;color:var(--sub);line-height:1.8;font-style:italic;
 }
 /* stat row below the bio */
 .equipo-stats{
@@ -881,7 +814,7 @@ svg.has-selection .donut-seg.active{
   flex:1;min-width:120px;
 }
 .equipo-stat-val{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:clamp(18px,2.5vw,24px);
   letter-spacing:-1px;color:var(--text);
   line-height:1;
@@ -956,7 +889,7 @@ svg.has-selection .donut-seg.active{
   display:flex;flex-direction:column;gap:3px;
 }
 .comite-name{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:13px;letter-spacing:-.1px;
   line-height:1.2;overflow:visible;
   color:var(--text);
@@ -970,9 +903,8 @@ svg.has-selection .donut-seg.active{
 }
 /* spec below name/role */
 .comite-spec{
-  font-size:12px;color:var(--sub);
-  line-height:1.6;
-  letter-spacing:.01em;
+  font-size:11px;color:var(--muted);
+  line-height:1.5;
   text-align:left;
   max-width:100%;
   padding-left:0;
@@ -1006,8 +938,8 @@ svg.has-selection .donut-seg.active{
 .est-card:hover::before{opacity:1;}
 .est-num{
   position:absolute;top:14px;right:18px;
-  font-family:var(--font-display);font-size:64px;font-weight:700;
-  color:var(--blue);opacity:.035;letter-spacing:-3px;line-height:1;
+  font-family:var(--font-display);font-size:64px;font-weight:800;
+  color:var(--blue);opacity:.035;letter-spacing:-4px;line-height:1;
 }
 /* ── Glassmorphism icon ── */
 .est-icon{
@@ -1030,8 +962,8 @@ svg.has-selection .donut-seg.active{
   width:24px;height:24px;
   position:relative;z-index:1;
 }
-.est-title{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.6px;margin-bottom:10px;color:var(--text);}
-.est-desc{font-size:14px;color:var(--sub);line-height:1.85;letter-spacing:.01em;}
+.est-title{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.6px;margin-bottom:10px;color:var(--text);}
+.est-desc{font-size:13px;color:var(--muted);line-height:1.85;}
 
 /* ═══════════════════════════════════════════════════════════════
    OPERATORIA
@@ -1044,7 +976,7 @@ svg.has-selection .donut-seg.active{
   transition:transform .25s,border-color .25s,background .25s;
 }
 .ops-card:hover{transform:translateY(-4px);border-color:var(--border2);background:rgba(79,134,247,.04);}
-.ops-val{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-1px;margin-bottom:7px;}
+.ops-val{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-1px;margin-bottom:7px;}
 .ops-lbl{font-size:9px;font-family:var(--font-mono);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);line-height:1.6;}
 
 .fee-box{
@@ -1053,8 +985,8 @@ svg.has-selection .donut-seg.active{
   display:flex;flex-direction:column;align-items:flex-start;gap:10px;
 }
 .fee-box-icon{font-size:32px;flex-shrink:0;margin-top:2px;}
-.fee-box-title{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.5px;margin-bottom:8px;}
-.fee-box-text{font-size:14px;color:var(--sub);line-height:1.85;letter-spacing:.01em;}
+.fee-box-title{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:-.5px;margin-bottom:8px;}
+.fee-box-text{font-size:13px;color:var(--sub);line-height:1.85;}
 .fee-box-legal{font-size:11px;color:var(--muted);margin-top:12px;font-family:var(--font-mono);}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1073,10 +1005,10 @@ svg.has-selection .donut-seg.active{
   width:36px;height:36px;border-radius:50%;flex-shrink:0;
   background:linear-gradient(135deg,var(--blue),var(--purple));
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:700;font-size:13px;color:#fff;
+  font-family:var(--font-display);font-weight:800;font-size:13px;color:#fff;
   box-shadow:0 4px 14px var(--blue-glow);
 }
-.step-text{font-size:14px;font-weight:500;color:var(--sub);line-height:1.6;letter-spacing:.01em;}
+.step-text{font-size:14px;font-weight:500;color:var(--sub);}
 
 .store-row{
   display:flex;flex-direction:row;flex-wrap:wrap;
@@ -1099,7 +1031,6 @@ svg.has-selection .donut-seg.active{
   background:rgba(79,134,247,.06);
 }
 .store-btn-icon{font-size:22px;}
-.store-btn-icon-svg,.footer-store-btn-icon-svg{flex-shrink:0;display:block;}
 .store-btn-sub{font-size:10px;color:var(--muted);font-family:var(--font-mono);font-weight:600;}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1119,7 +1050,7 @@ svg.has-selection .donut-seg.active{
   color:var(--sub);
   background:rgba(79,134,247,.05);
 }
-.ieb-bold{color:var(--text);font-weight:700;font-family:var(--font-display);letter-spacing:-.3px;}
+.ieb-bold{color:var(--text);font-weight:800;font-family:var(--font-display);letter-spacing:-.3px;}
 
 /* ═══════════════════════════════════════════════════════════════
    CONTACTO
@@ -1167,7 +1098,7 @@ svg.has-selection .donut-seg.active{
 .btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 32px var(--blue-glow);}
 .form-success{display:none;text-align:center;padding:32px 0;}
 .form-success-icon{font-size:52px;margin-bottom:16px;}
-.form-success h3{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-1px;margin-bottom:8px;}
+.form-success h3{font-family:var(--font-display);font-weight:800;font-size:26px;letter-spacing:-1px;margin-bottom:8px;}
 .form-success p{font-size:14px;color:var(--muted);}
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1198,13 +1129,12 @@ footer{
 }
 .footer-logo-mark svg{width:100%;height:100%;display:block;}
 .footer-logo-name{
-  font-family:var(--font-display);font-weight:700;
+  font-family:var(--font-display);font-weight:800;
   font-size:20px;letter-spacing:-.6px;color:var(--text);
 }
 .footer-tagline{
-  font-size:13px;color:rgba(240,238,255,.45);
-  line-height:1.75;max-width:280px;margin-bottom:0;
-  letter-spacing:.01em;
+  font-size:13px;color:rgba(240,238,255,.35);
+  line-height:1.7;max-width:280px;margin-bottom:0;
 }
 /* Nav columns */
 .footer-cols{
@@ -1260,11 +1190,10 @@ footer{
   display:flex;flex-direction:column;gap:10px;
 }
 .footer-legal{
-  font-size:10px;line-height:1.9;
-  color:rgba(240,238,255,.25);
+  font-size:10px;line-height:1.85;
+  color:rgba(240,238,255,.18);
   max-width:860px;
   font-family:var(--font-mono);
-  letter-spacing:.02em;
 }
 .footer-copy{
   font-size:10px;color:rgba(240,238,255,.2);
@@ -1292,311 +1221,287 @@ footer{
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
 /* ═══════════════════════════════════════════════════════════════
-   PERFORMANCE — containment for off-screen sections
-   ═══════════════════════════════════════════════════════════════ */
-/* content-visibility removed — incompatible with GSAP ScrollTrigger position calculation */
-
-/* Ensure backdrop-filter layers are composited cleanly */
-nav, .track-mini, .store-pill, .est-icon, .hero-stats-mini{
-  transform: translateZ(0);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   NAV — HAMBURGER + MOBILE DRAWER
-   Mobile-first. Best practices:
-   • CSS-only transitions (no display:none toggle — uses transform+opacity)
-   • scroll-lock via body.menu-open class
-   • focus-trap via JS
-   • ARIA aria-expanded / aria-hidden managed by JS
-   • overscroll-behavior: contain on drawer
-   • 44px min touch target on hamburger (WCAG 2.5.5)
+   NAV — hamburger + mobile menu
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Scroll lock when menu open ── */
-body.menu-open{
-  overflow:hidden;
-  /* prevent iOS momentum scroll bleed */
-  position:fixed;
-  width:100%;
+/* Scroll lock when menu open */
+body.nav-open { overflow: hidden; }
+
+/* ── Hamburger button ── */
+.nav-hamburger {
+  display: none; /* hidden by default — shown in mobile breakpoint below */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  flex-shrink: 0;
+  margin-left: auto;
+  position: relative;
+  z-index: 302;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .2s;
+}
+.nav-hamburger:hover { background: rgba(255,255,255,.06); }
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+  transition: transform .35s cubic-bezier(.23,1,.32,1), opacity .2s, width .3s;
+}
+.nav-hamburger span:nth-child(2) { width: 15px; }
+
+/* X morphing */
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); width: 22px; }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; width: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); width: 22px; }
+
+/* ── Backdrop overlay ── */
+.nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 299;
+}
+.nav-overlay.open { display: block; }
+
+/* ── Mobile fullscreen menu ── */
+.nav-mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  background: rgba(4,4,20,.97);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  padding: 0;
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.23,1,.32,1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.nav-mobile-menu.open { transform: translateY(0); }
+
+/* Header inside drawer */
+/* ── Header: título centrado con close a la derecha ── */
+.nav-mobile-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;          /* título centrado */
+  padding: 0 20px;
+  height: 64px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
 }
 
-/* ── Hamburger button ─────────────────────────────────────────── */
-.nav-hamburger{
-  /* 44×44 min touch target */
-  display:flex;flex-direction:column;justify-content:center;align-items:center;
-  gap:5.5px;
-  width:44px;height:44px;
-  cursor:pointer;padding:0;
-  border-radius:12px;
-  border:1px solid transparent;
-  background:transparent;
-  transition:background .22s ease, border-color .22s ease;
-  -webkit-tap-highlight-color:transparent;
-  position:relative;z-index:310;
-  flex-shrink:0;
+/* Marca centrada */
+.nav-mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
 }
-.nav-hamburger:hover{
-  background:rgba(255,255,255,.07);
-  border-color:rgba(255,255,255,.1);
-}
-.nav-hamburger:focus-visible{
-  outline:2px solid var(--blue);
-  outline-offset:2px;
+.nav-mobile-brand-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 10px var(--blue), 0 0 20px rgba(79,134,247,.35);
+  flex-shrink: 0;
 }
 
-/* Three bars */
-.nav-hamburger span{
-  display:block;
-  width:22px;height:1.5px;
-  border-radius:2px;
-  background:var(--text);
-  transform-origin:center;
+/* Close: absoluto top-right — no afecta el centrado del título */
+.nav-mobile-close {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.45);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-mobile-close:hover {
+  background: rgba(79,134,247,.12);
+  border-color: rgba(79,134,247,.3);
+  color: var(--blue);
+}
+.nav-mobile-close:active { transform: translateY(-50%) scale(.92); }
+
+/* ── Nav list — centrado, legible ── */
+.nav-mobile-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;             /* centra los items */
+  padding: 12px 32px;
+  list-style: none;
+  gap: 0;
+  width: 100%;
+}
+.nav-mobile-list li {
+  width: 100%;
+  max-width: 320px;                /* línea de texto controlada */
+}
+
+/* Cada link — centrado, hover de marca */
+.nav-mobile-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;          /* texto centrado */
+  gap: 0;
+  width: 100%;
+  min-height: 52px;                 /* touch target generoso */
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-radius: 0;
+  background: transparent;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
   transition:
-    transform .38s cubic-bezier(.23,1,.32,1),
-    opacity   .22s ease,
-    width     .32s cubic-bezier(.23,1,.32,1);
-  will-change:transform;
+    background .18s ease,
+    transform   .16s cubic-bezier(.23,1,.32,1);
 }
-/* Middle bar shortens before X */
-.nav-hamburger span:nth-child(2){
-  width:16px;
+.nav-mobile-list li:first-child .nav-mobile-link {
+  border-top: 1px solid rgba(255,255,255,.06);
 }
 
-/* ── X morphing ── */
-.nav-hamburger[aria-expanded="true"] span:nth-child(1){
-  transform:translateY(7px) rotate(45deg);
-  width:22px;
+/* Hover: fondo sutil + leve scale — sin desplazamiento lateral */
+.nav-mobile-link:hover {
+  background: rgba(255,255,255,.04);
+  border-radius: 10px;
+  border-color: transparent;
 }
-.nav-hamburger[aria-expanded="true"] span:nth-child(2){
-  opacity:0;
-  width:0;
-  transform:scaleX(0);
+.nav-mobile-link:hover + li .nav-mobile-link,
+.nav-mobile-list li:has(+ li .nav-mobile-link:hover) .nav-mobile-link {
+  border-color: transparent; /* oculta el separador adyacente al hover */
 }
-.nav-hamburger[aria-expanded="true"] span:nth-child(3){
-  transform:translateY(-7px) rotate(-45deg);
-  width:22px;
+.nav-mobile-link:active {
+  background: rgba(79,134,247,.08);
+  transform: scale(.97);
+  border-radius: 10px;
 }
-
-/* ── Backdrop overlay ─────────────────────────────────────────── */
-.nav-overlay{
-  position:fixed;inset:0;
-  background:rgba(2,4,18,.7);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-  z-index:290;
-  /* Use visibility+opacity instead of display:none for animatable close */
-  visibility:hidden;
-  opacity:0;
-  transition:opacity .38s ease, visibility .38s;
-}
-.nav-overlay.is-open{
-  visibility:visible;
-  opacity:1;
+.nav-mobile-link.is-active {
+  background: rgba(79,134,247,.08);
+  border-radius: 10px;
+  border-color: transparent;
 }
 
-/* ── Mobile drawer ────────────────────────────────────────────── */
-.nav-mobile-menu{
-  position:fixed;
-  top:0;right:0;
-  width:min(300px, calc(100vw - 56px));
-  height:100%;
-  height:100dvh; /* dynamic viewport height — handles mobile browser chrome */
-  background:rgba(5,5,18,.98);
-  backdrop-filter:blur(32px);
-  -webkit-backdrop-filter:blur(32px);
-  border-left:1px solid rgba(255,255,255,.07);
-  z-index:300;
-  display:flex;
-  flex-direction:column;
-  /* Translate off-screen right; visibility hidden prevents focus leak */
-  transform:translateX(100%);
-  visibility:hidden;
-  transition:
-    transform .4s cubic-bezier(.23,1,.32,1),
-    visibility .4s;
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  /* Safe area insets for notched phones */
-  padding-bottom:env(safe-area-inset-bottom, 20px);
-  padding-right:env(safe-area-inset-right, 0px);
+/* Label — cuerpo legible, centrado */
+.nav-mobile-label {
+  font-family: var(--font-body);
+  font-size: 17px;                  /* más grande para menú centrado */
+  font-weight: 600;
+  letter-spacing: .01em;
+  line-height: 1.15;
+  color: rgba(255,255,255,.55);
+  transition: color .18s ease;
+  text-align: center;
 }
-.nav-mobile-menu.is-open{
-  transform:translateX(0);
-  visibility:visible;
+.nav-mobile-link:hover .nav-mobile-label {
+  color: var(--text);
+}
+.nav-mobile-link:active .nav-mobile-label,
+.nav-mobile-link.is-active .nav-mobile-label {
+  color: var(--blue);
 }
 
-/* ── Drawer header ── */
-.nav-mobile-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;
-  height:64px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  flex-shrink:0;
-}
-.nav-mobile-brand{
-  font-family:var(--font-display);
-  font-weight:700;font-size:14px;letter-spacing:.02em;
-  color:var(--text);
-  display:flex;align-items:center;gap:8px;
-}
-.nav-mobile-brand-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--blue);
-  box-shadow:0 0 8px var(--blue);
-  flex-shrink:0;
-}
-/* Close button inside drawer */
-.nav-mobile-close{
-  display:flex;align-items:center;justify-content:center;
-  width:36px;height:36px;
-  border-radius:8px;border:1px solid rgba(255,255,255,.08);
-  background:transparent;
-  color:var(--sub);
-  font-size:18px;line-height:1;
-  cursor:pointer;
-  transition:background .18s, color .18s;
-  -webkit-tap-highlight-color:transparent;
-}
-.nav-mobile-close:hover{
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-}
-.nav-mobile-close:focus-visible{
-  outline:2px solid var(--blue);
-  outline-offset:2px;
+/* Arrow oculta — el centrado no la necesita */
+.nav-mobile-arrow { display: none; }
+
+/* Divider (no usado en centrado, por si acaso) */
+.nav-mobile-divider {
+  height: 1px;
+  background: rgba(255,255,255,.06);
+  margin: 4px 0;
+  width: 100%;
+  max-width: 320px;
 }
 
-/* ── Nav list ── */
-.nav-mobile-list{
-  flex:1;
-  padding:12px 16px;
-  display:flex;flex-direction:column;gap:2px;
+/* ── Footer CTA ── */
+.nav-mobile-footer {
+  flex-shrink: 0;
+  padding: 20px 32px;
+  padding-bottom: max(28px, env(safe-area-inset-bottom, 28px));
+  border-top: 1px solid rgba(255,255,255,.07);
 }
+.nav-mobile-cta {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%;
+  padding: 17px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px; font-weight: 700;
+  letter-spacing: .03em;
+  box-shadow: 0 8px 28px rgba(79,134,247,.3);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .2s, box-shadow .2s;
+  border: none;
+}
+.nav-mobile-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(79,134,247,.5);
+}
+.nav-mobile-cta:active { transform: scale(.97); }
 
-/* ── Each link ── */
-.nav-mobile-link{
-  display:flex;align-items:center;gap:14px;
-  padding:13px 14px;
-  border-radius:12px;
-  font-family:var(--font-body);
-  font-size:15px;font-weight:600;
-  color:var(--sub);
-  letter-spacing:.01em;
-  text-align:left;
-  border:1px solid transparent;
-  cursor:pointer;
-  /* Transition for hover — stagger handled separately */
-  transition:color .18s, background .18s, border-color .18s, transform .18s;
-  -webkit-tap-highlight-color:transparent;
-  /* 44px min touch target */
-  min-height:44px;
-}
-/* Number badge */
-.nav-mobile-num{
-  font-family:var(--font-mono);
-  font-size:10px;font-weight:700;
-  color:rgba(255,255,255,.2);
-  letter-spacing:.1em;
-  min-width:20px;
-  transition:color .18s;
-}
-.nav-mobile-link:hover{
-  color:var(--text);
-  background:rgba(255,255,255,.04);
-  border-color:rgba(255,255,255,.07);
-  transform:translateX(3px);
-}
-.nav-mobile-link:hover .nav-mobile-num{
-  color:var(--blue);
-}
-.nav-mobile-link:focus-visible{
-  outline:2px solid var(--blue);
-  outline-offset:2px;
-}
-.nav-mobile-link.is-active{
-  color:var(--blue);
-  background:rgba(79,134,247,.08);
-  border-color:rgba(79,134,247,.15);
-}
-.nav-mobile-link.is-active .nav-mobile-num{
-  color:var(--blue);
-}
-
-/* ── Divider ── */
-.nav-mobile-divider{
-  height:1px;
-  background:rgba(255,255,255,.06);
-  margin:6px 14px;
-  flex-shrink:0;
-}
-
-/* ── CTA button ── */
-.nav-mobile-footer{
-  padding:16px 20px;
-  padding-bottom:max(20px, env(safe-area-inset-bottom));
-  flex-shrink:0;
-}
-.nav-mobile-cta{
-  display:block;width:100%;
-  padding:15px 20px;
-  border-radius:14px;
-  background:linear-gradient(135deg,var(--blue),var(--purple));
-  color:#fff;
-  font-family:var(--font-body);
-  font-size:14px;font-weight:700;
-  text-align:center;
-  letter-spacing:.03em;
-  box-shadow:0 8px 24px rgba(79,134,247,.28);
-  transition:transform .2s, box-shadow .2s, opacity .2s;
-  -webkit-tap-highlight-color:transparent;
-  cursor:pointer;
-}
-.nav-mobile-cta:hover{
-  transform:translateY(-2px);
-  box-shadow:0 12px 32px rgba(79,134,247,.42);
-}
-.nav-mobile-cta:active{
-  transform:scale(.97);
-  opacity:.9;
-}
-.nav-mobile-cta:focus-visible{
-  outline:2px solid #fff;
-  outline-offset:2px;
-}
-
-/* ── Stagger animation (items slide in from right) ── */
+/* ── Stagger de entrada ── */
 .nav-mobile-link,
-.nav-mobile-divider,
-.nav-mobile-cta{
-  opacity:0;
-  transform:translateX(20px);
-  /* Base transition for stagger */
+.nav-mobile-cta {
+  opacity: 0;
+  transform: translateY(14px);
   transition:
-    opacity .3s ease,
-    transform .3s cubic-bezier(.23,1,.32,1),
-    color .18s, background .18s, border-color .18s;
+    opacity      .28s ease,
+    transform    .28s cubic-bezier(.23,1,.32,1),
+    background   .18s ease,
+    border-color .18s ease;
 }
-.nav-mobile-menu.is-open .nav-mobile-link,
-.nav-mobile-menu.is-open .nav-mobile-divider,
-.nav-mobile-menu.is-open .nav-mobile-cta{
-  opacity:1;
-  transform:translateX(0);
+.nav-mobile-menu.open .nav-mobile-link,
+.nav-mobile-menu.open .nav-mobile-cta {
+  opacity: 1;
+  transform: translateY(0);
 }
-/* Stagger delays — nth-of-type doesn't work across different elements,
-   use data-index pattern instead */
-.nav-mobile-menu.is-open [data-mdelay="1"]{ transition-delay:.06s; }
-.nav-mobile-menu.is-open [data-mdelay="2"]{ transition-delay:.11s; }
-.nav-mobile-menu.is-open [data-mdelay="3"]{ transition-delay:.16s; }
-.nav-mobile-menu.is-open [data-mdelay="4"]{ transition-delay:.20s; }
-.nav-mobile-menu.is-open [data-mdelay="5"]{ transition-delay:.24s; }
-.nav-mobile-menu.is-open [data-mdelay="6"]{ transition-delay:.27s; }
-.nav-mobile-menu.is-open [data-mdelay="7"]{ transition-delay:.30s; }
-.nav-mobile-menu.is-open [data-mdelay="8"]{ transition-delay:.34s; }
-/* Reset delays on close — instant invisible */
-.nav-mobile-menu:not(.is-open) .nav-mobile-link,
-.nav-mobile-menu:not(.is-open) .nav-mobile-divider,
-.nav-mobile-menu:not(.is-open) .nav-mobile-cta{
-  transition-delay:0s!important;
+.nav-mobile-menu.open [data-delay="1"] { transition-delay: .06s; }
+.nav-mobile-menu.open [data-delay="2"] { transition-delay: .10s; }
+.nav-mobile-menu.open [data-delay="3"] { transition-delay: .14s; }
+.nav-mobile-menu.open [data-delay="4"] { transition-delay: .18s; }
+.nav-mobile-menu.open [data-delay="5"] { transition-delay: .21s; }
+.nav-mobile-menu.open [data-delay="6"] { transition-delay: .24s; }
+.nav-mobile-menu.open [data-delay="7"] { transition-delay: .27s; }
+.nav-mobile-menu.open [data-delay="8"] { transition-delay: .31s; }
+/* Reset inmediato al cerrar */
+.nav-mobile-menu:not(.open) .nav-mobile-link,
+.nav-mobile-menu:not(.open) .nav-mobile-cta {
+  transition-delay: 0s !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1613,11 +1518,11 @@ body.menu-open{
 
 /* ── Nav */
 nav{ padding:0 var(--sp-edge); }
-/* Mobile: logo left, hamburger right — hamburger visible only on mobile */
+/* Mobile: logo left, hamburger right */
 .nav-inner{ justify-content:space-between; }
 .nav-links{ display:none; }
 .nav-cta{ display:none; }
-.nav-hamburger{ display:flex; margin-left:auto; }
+.nav-hamburger{ display:flex; }
 
 /* ── Hero */
 #hero{ padding:88px var(--sp-edge) 72px; }
@@ -1723,41 +1628,6 @@ footer{ padding:44px var(--sp-edge) 28px; }
 .footer-bottom{ flex-direction:column; align-items:flex-start; gap:8px; padding-top:20px; }
 .footer-copy{ font-size:9px; }
 
-/* Force async decode on all images — avoids blocking main thread on mobile */
-img { decoding: async; }
-/* Disable smooth scroll on mobile — it causes compositor jank with GSAP */
-@media(max-width:767px){
-  html { scroll-behavior: auto; }
-}
-
-/* On mobile: reduce or disable heavy backdrop-filter to prevent scroll jank */@media(max-width:767px){
-  nav.scrolled{
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-  }
-  .track-mini{
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
-    background:rgba(255,255,255,.08);
-  }
-  .store-pill{
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-  }
-  .hero-stats-mini{
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-  }
-  .est-icon{
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
-  }
-  /* Disable noise overlay on mobile (expensive SVG filter) */
-  body::before{ display:none; }
-  /* Ticker: slightly faster on mobile */
-  .ticker-track{ animation-duration:20s; }
-}
-
 
 /* ═══════════════════════════════════════════════════════════════
    SMALL — 480px+   (iPhone Plus, large phones)
@@ -1806,13 +1676,11 @@ img { decoding: async; }
   /* Nav → desktop */
   nav{ padding:0 var(--sp-edge); }
   .nav-inner{ justify-content:flex-start; }
-  /* Desktop nav — hamburger hidden, links + CTA visible */
-  .nav-hamburger{ display:none; }
+  .nav-hamburger{ display:none !important; }
   .nav-links{ display:flex; justify-content:center; flex:1; }
   .nav-cta{ display:block; }
-  /* On desktop: force drawer closed - higher specificity than .is-open */
-  .nav-mobile-menu:not(.is-open){ visibility:hidden; transform:translateX(100%); }
-  .nav-overlay:not(.is-open){ visibility:hidden; opacity:0; pointer-events:none; }
+  .nav-mobile-menu, .nav-overlay{ display:none !important; }
+  .nav-mobile-menu{ display:none!important; }
 
   /* Hero */
   #hero{ padding:120px var(--sp-edge) 96px; }
@@ -1996,74 +1864,46 @@ img { decoding: async; }
       <button class="nav-link" data-target="contacto">Contacto</button>
     </div>
     <button class="nav-cta" onclick="scrollTo('acceso')">Invertir ahora →</button>
-    <button
-      class="nav-hamburger"
-      id="nav-hamburger"
-      aria-label="Abrir menú de navegación"
-      aria-expanded="false"
-      aria-controls="nav-mobile-menu"
-      type="button">
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
+    <button class="nav-hamburger" id="hamburger"
+      aria-label="Abrir menú" aria-expanded="false" aria-controls="mobileMenu">
+      <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
 
-<!-- ── Backdrop overlay ── -->
-<div
-  class="nav-overlay"
-  id="nav-overlay"
-  aria-hidden="true"
-  tabindex="-1">
-</div>
+<!-- Backdrop overlay -->
+<div class="nav-overlay" id="navOverlay" aria-hidden="true"></div>
 
-<!-- ── Mobile drawer ── -->
-<nav
-  class="nav-mobile-menu"
-  id="nav-mobile-menu"
-  role="dialog"
-  aria-modal="true"
-  aria-label="Menú principal"
-  aria-hidden="true"
-  inert>
+<!-- Mobile fullscreen menu -->
+<div class="nav-mobile-menu" id="mobileMenu"
+  role="dialog" aria-modal="true" aria-label="Navegación principal" aria-hidden="true">
 
   <!-- Drawer header -->
   <div class="nav-mobile-header">
-    <span class="nav-mobile-brand" aria-hidden="true">
+    <span class="nav-mobile-brand">
       <span class="nav-mobile-brand-dot"></span>
       Ciclo Nova
     </span>
-    <button
-      class="nav-mobile-close"
-      id="nav-mobile-close"
-      aria-label="Cerrar menú"
-      type="button">
-      ✕
-    </button>
+    <button class="nav-mobile-close" id="mobileClose" aria-label="Cerrar menú">✕</button>
   </div>
 
-  <!-- Nav links -->
+  <!-- Links list -->
   <ul class="nav-mobile-list" role="list">
-    <li><button class="nav-mobile-link" data-target="track"      data-mdelay="1" type="button"><span class="nav-mobile-num" aria-hidden="true">01</span>Track Record</button></li>
-    <li><button class="nav-mobile-link" data-target="cartera"    data-mdelay="2" type="button"><span class="nav-mobile-num" aria-hidden="true">02</span>Cartera</button></li>
-    <li><button class="nav-mobile-link" data-target="equipo"     data-mdelay="3" type="button"><span class="nav-mobile-num" aria-hidden="true">03</span>Equipo</button></li>
-    <li><button class="nav-mobile-link" data-target="estrategia" data-mdelay="4" type="button"><span class="nav-mobile-num" aria-hidden="true">04</span>Estrategia</button></li>
-    <li><button class="nav-mobile-link" data-target="operatoria" data-mdelay="5" type="button"><span class="nav-mobile-num" aria-hidden="true">05</span>Operatoria</button></li>
-    <li><button class="nav-mobile-link" data-target="acceso"     data-mdelay="6" type="button"><span class="nav-mobile-num" aria-hidden="true">06</span>Cómo invertir</button></li>
-    <li><button class="nav-mobile-link" data-target="contacto"   data-mdelay="7" type="button"><span class="nav-mobile-num" aria-hidden="true">07</span>Contacto</button></li>
+    <li><button class="nav-mobile-link" data-target="track"      data-delay="1"><span class="nav-mobile-label">Track Record</span><span class="nav-mobile-arrow">›</span></button></li>
+    <li><button class="nav-mobile-link" data-target="cartera"    data-delay="2"><span class="nav-mobile-label">Cartera</span><span class="nav-mobile-arrow">›</span></button></li>
+    <li><button class="nav-mobile-link" data-target="equipo"     data-delay="3"><span class="nav-mobile-label">Equipo</span><span class="nav-mobile-arrow">›</span></button></li>
+    <li><button class="nav-mobile-link" data-target="estrategia" data-delay="4"><span class="nav-mobile-label">Estrategia</span><span class="nav-mobile-arrow">›</span></button></li>
+    <li><button class="nav-mobile-link" data-target="operatoria" data-delay="5"><span class="nav-mobile-label">Operatoria</span><span class="nav-mobile-arrow">›</span></button></li>
+    <li><button class="nav-mobile-link" data-target="acceso"     data-delay="6"><span class="nav-mobile-label">Cómo invertir</span><span class="nav-mobile-arrow">›</span></button></li>
+    <li><button class="nav-mobile-link" data-target="contacto"   data-delay="7"><span class="nav-mobile-label">Contacto</span><span class="nav-mobile-arrow">›</span></button></li>
   </ul>
 
-  <div class="nav-mobile-divider" data-mdelay="8" aria-hidden="true"></div>
-
-  <!-- CTA -->
+  <!-- CTA footer -->
   <div class="nav-mobile-footer">
-    <button class="nav-mobile-cta" data-mdelay="8" onclick="mobileNav('acceso')" type="button">
-      Invertir ahora →
-    </button>
+    <button class="nav-mobile-cta" data-delay="8" onclick="mobileNav('acceso')">Invertir ahora →</button>
   </div>
 
-</nav>
+</div>
 
 <!-- ══ HERO ══════════════════════════════════════════════════════ -->
 <section id="hero">
@@ -2097,12 +1937,12 @@ img { decoding: async; }
     <!-- Store buttons -->
     <div class="hero-stores" style="opacity:0;animation:fadeUp .8s .44s cubic-bezier(.22,1,.36,1) forwards">
       <a href="https://play.google.com/store/apps/details?id=ar.com.invertirenbolsa.iebmas&amp;hl=es_AR" class="store-pill" target="_blank">
-        <!-- Google Play icon — 4 colores oficiales -->
-        <svg class="store-pill-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4.07 23.27 14.5 12 4.07.73C3.73.9 3.5 1.26 3.5 1.67v20.66c0 .41.23.77.57.94Z" fill="#4285F4"/>
-          <path d="M4.07.73 14.5 12l3.56-3.56L6.45.17C5.57-.3 4.5.14 4.07.73Z" fill="#FBBC04"/>
-          <path d="M4.07 23.27 14.5 12l3.56 3.56-11.61 6.27c-.88.47-1.95.03-2.38-.56Z" fill="#34A853"/>
-          <path d="M20.5 10.83 18.06 8.44 14.5 12l3.56 3.56L20.5 13.2a1.29 1.29 0 0 0 0-2.37Z" fill="#EA4335"/>
+        <!-- Google Play icon -->
+        <svg class="store-pill-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M3.18 23.5c.3.17.65.18.97.04L15.5 12 3.18.46C2.86.32 2.5.33 2.2.5A1.3 1.3 0 0 0 1.5 1.67v20.67c0 .5.27.97.68 1.17Z" fill="white" opacity=".9"></path>
+          <path d="M19.5 9.17 16.8 7.63 13.6 12l3.2 4.37 2.7-1.54A2.3 2.3 0 0 0 21 13a2.3 2.3 0 0 0-1.5-1.83Z" fill="white" opacity=".9"></path>
+          <path d="m15.5 12-12.32 11 12.32-4.63L18.8 14.37Z" fill="white" opacity=".6"></path>
+          <path d="M3.18.46 15.5 12 18.8 9.63 6.5 5Z" fill="white" opacity=".6"></path>
         </svg>
         <div class="store-pill-text">
           <span class="store-pill-sub">GET IT ON</span>
@@ -2494,18 +2334,11 @@ img { decoding: async; }
     </div>
     <div class="store-row reveal d4">
       <a href="https://play.google.com/store/apps/details?id=ar.com.invertirenbolsa.iebmas&amp;hl=es_AR" class="store-btn" target="_blank">
-        <svg class="store-btn-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;flex-shrink:0">
-          <path d="M4.07 23.27 14.5 12 4.07.73C3.73.9 3.5 1.26 3.5 1.67v20.66c0 .41.23.77.57.94Z" fill="#4285F4"/>
-          <path d="M4.07.73 14.5 12l3.56-3.56L6.45.17C5.57-.3 4.5.14 4.07.73Z" fill="#FBBC04"/>
-          <path d="M4.07 23.27 14.5 12l3.56 3.56-11.61 6.27c-.88.47-1.95.03-2.38-.56Z" fill="#34A853"/>
-          <path d="M20.5 10.83 18.06 8.44 14.5 12l3.56 3.56L20.5 13.2a1.29 1.29 0 0 0 0-2.37Z" fill="#EA4335"/>
-        </svg>
+        <span class="store-btn-icon">▶</span>
         <div><div class="store-btn-sub">Disponible en</div>Google Play</div>
       </a>
       <a href="https://apps.apple.com/ar/app/ieb-tu-app-de-inversiones/id1669713604" class="store-btn" target="_blank">
-        <svg class="store-btn-icon-svg" viewBox="0 0 24 24" fill="white" style="width:22px;height:22px;flex-shrink:0">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
-        </svg>
+        <span class="store-btn-icon">🍎</span>
         <div><div class="store-btn-sub">Disponible en</div>App Store</div>
       </a>
     </div>
@@ -2565,9 +2398,9 @@ img { decoding: async; }
       </p>
       <!-- Speaker card -->
       <div style="display:inline-flex;align-items:center;gap:14px;background:rgba(123,82,255,.12);border:1px solid rgba(123,82,255,.25);border-radius:14px;padding:14px 24px;">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:13px;color:#fff;">JI</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px;color:#fff;">JI</div>
         <div style="text-align:left;">
-          <div style="font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:-.3px;color:var(--text);">Juan Ignacio Abuchdid</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:-.3px;color:var(--text);">Juan Ignacio Abuchdid</div>
           <div style="font-size:11px;color:var(--purple-lt);font-family:var(--font-mono);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;">Presidente de Grupo IEB</div>
         </div>
       </div>
@@ -2578,7 +2411,7 @@ img { decoding: async; }
 
     <!-- Brand / ecosystem -->
     <div class="reveal" style="text-align:center;margin-bottom:32px;">
-      <div style="font-family:var(--font-display);font-weight:700;font-size:clamp(28px,5vw,48px);letter-spacing:-2px;color:var(--text);margin-bottom:8px;">Ciclo Nova</div>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:clamp(28px,5vw,48px);letter-spacing:-2px;color:var(--text);margin-bottom:8px;">Ciclo Nova</div>
       <div style="font-size:11px;font-family:var(--font-mono);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);">Un fondo de Grupo IEB</div>
     </div>
 
@@ -2653,21 +2486,14 @@ img { decoding: async; }
       <div class="footer-right">
         <div class="footer-store-badges">
           <a href="https://play.google.com/store/apps/details?id=ar.com.invertirenbolsa.iebmas&hl=es_AR" target="_blank" class="footer-store-btn">
-            <svg class="footer-store-btn-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;flex-shrink:0">
-          <path d="M4.07 23.27 14.5 12 4.07.73C3.73.9 3.5 1.26 3.5 1.67v20.66c0 .41.23.77.57.94Z" fill="#4285F4"/>
-          <path d="M4.07.73 14.5 12l3.56-3.56L6.45.17C5.57-.3 4.5.14 4.07.73Z" fill="#FBBC04"/>
-          <path d="M4.07 23.27 14.5 12l3.56 3.56-11.61 6.27c-.88.47-1.95.03-2.38-.56Z" fill="#34A853"/>
-          <path d="M20.5 10.83 18.06 8.44 14.5 12l3.56 3.56L20.5 13.2a1.29 1.29 0 0 0 0-2.37Z" fill="#EA4335"/>
-        </svg>
+            <span class="footer-store-btn-icon">▶</span>
             <div class="footer-store-btn-text">
               <span class="footer-store-sub">Disponible en</span>
               <span class="footer-store-name">Google Play</span>
             </div>
           </a>
           <a href="https://apps.apple.com/ar/app/ieb-tu-app-de-inversiones/id1669713604" target="_blank" class="footer-store-btn">
-            <svg class="footer-store-btn-icon-svg" viewBox="0 0 24 24" fill="white" style="width:22px;height:22px;flex-shrink:0">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/>
-        </svg>
+            <span class="footer-store-btn-icon">🍎</span>
             <div class="footer-store-btn-text">
               <span class="footer-store-sub">Disponible en</span>
               <span class="footer-store-name">App Store</span>
@@ -2798,26 +2624,15 @@ const $ = id => document.getElementById(id);
 const eOutQ = t => 1 - Math.pow(1-t,4);
 function scrollTo(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
 
+// ── PROGRESS BAR ───────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  $('progress').style.width = (pct*100)+'%';
+},{passive:true});
+
 // ── NAV ────────────────────────────────────────────────────────────
 const nav = $('main-nav');
-
-// ── PROGRESS BAR + NAV SCROLL — throttled via rAF ─────────────────
-// Merging into ONE scroll listener + rAF throttle eliminates jank
-let _scrollTicking = false;
-function onScroll(){
-  if(_scrollTicking) return;
-  _scrollTicking = true;
-  requestAnimationFrame(()=>{
-    const scrollY = window.scrollY;
-    const maxScroll = document.body.scrollHeight - window.innerHeight;
-    if(maxScroll > 0){
-      $('progress').style.width = (scrollY / maxScroll * 100)+'%';
-    }
-    nav.classList.toggle('scrolled', scrollY > 40);
-    _scrollTicking = false;
-  });
-}
-window.addEventListener('scroll', onScroll, {passive:true});
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>40);},{passive:true});
 
 const navLinks = document.querySelectorAll('.nav-link[data-target]');
 const secIds = [...navLinks].map(b=>b.dataset.target);
@@ -2830,160 +2645,91 @@ const sObserver = new IntersectionObserver(entries=>{
 secIds.forEach(id=>{const el=document.getElementById(id);if(el)sObserver.observe(el);});
 navLinks.forEach(b=>b.addEventListener('click',()=>scrollTo(b.dataset.target)));
 
-// ══════════════════════════════════════════════════════════════════
-// HAMBURGER MENU — best practices implementation
-// ✓ CSS transform/visibility transitions (no display:none toggle)
-// ✓ body scroll-lock (position:fixed pattern, preserves scroll pos)
-// ✓ ARIA: aria-expanded, aria-hidden, inert attribute
-// ✓ Focus trap (Tab cycles inside open menu)
-// ✓ Escape key closes menu
-// ✓ Close on overlay click
-// ✓ Close on nav link click
-// ✓ Active state synced with IntersectionObserver
-// ✓ Resize to desktop auto-closes
-// ══════════════════════════════════════════════════════════════════
-(function(){
-  const hamburgerBtn  = document.getElementById('nav-hamburger');
-  const closeBtn      = document.getElementById('nav-mobile-close');
-  const overlay       = document.getElementById('nav-overlay');
-  const drawer        = document.getElementById('nav-mobile-menu');
-  const mobileLinks   = drawer.querySelectorAll('.nav-mobile-link[data-target]');
+// ── HAMBURGER MENU ─────────────────────────────────────────────────
+(function() {
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const overlay    = document.getElementById('navOverlay');
+  const closeBtn   = document.getElementById('mobileClose');
+  const mobileLinks = mobileMenu ? mobileMenu.querySelectorAll('.nav-mobile-link[data-target]') : [];
 
-  if (!hamburgerBtn || !drawer) return; // guard
+  if (!hamburger || !mobileMenu) return;
 
-  let scrollY = 0; // remember scroll position for body-fix pattern
+  let savedScroll = 0;
 
-  // ── Open ──────────────────────────────────────────────────────────
   function openMenu() {
-    // scroll lock: save position, fix body
-    scrollY = window.scrollY;
-    document.body.style.top = `-${scrollY}px`;
-    document.body.classList.add('menu-open');
-
-    // ARIA
-    hamburgerBtn.setAttribute('aria-expanded', 'true');
-    hamburgerBtn.setAttribute('aria-label', 'Cerrar menú de navegación');
-    overlay.setAttribute('aria-hidden', 'false');
-    drawer.setAttribute('aria-hidden', 'false');
-    drawer.removeAttribute('inert');
-
-    // Visual
-    hamburgerBtn.classList.add('open'); // legacy compat
-    overlay.classList.add('is-open');
-    drawer.classList.add('is-open');
-
-    // Focus first focusable element in drawer after transition
+    savedScroll = window.scrollY;
+    // Scroll lock
+    document.body.style.top = '-' + savedScroll + 'px';
+    document.body.classList.add('nav-open');
+    // Show
+    hamburger.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    mobileMenu.classList.add('open');
+    mobileMenu.setAttribute('aria-hidden', 'false');
+    if (overlay) { overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false'); }
+    // Focus trap — first link after transition
     setTimeout(() => {
-      const first = getFocusables()[0];
+      const first = mobileMenu.querySelector('button:not([disabled])');
       if (first) first.focus();
-    }, 100);
+    }, 420);
   }
 
-  // ── Close ─────────────────────────────────────────────────────────
   function closeMenu() {
-    // restore scroll
-    document.body.classList.remove('menu-open');
+    // Remove scroll lock
+    document.body.classList.remove('nav-open');
     document.body.style.top = '';
-    window.scrollTo(0, scrollY);
-
-    // ARIA
-    hamburgerBtn.setAttribute('aria-expanded', 'false');
-    hamburgerBtn.setAttribute('aria-label', 'Abrir menú de navegación');
-    overlay.setAttribute('aria-hidden', 'true');
-    drawer.setAttribute('aria-hidden', 'true');
-    drawer.setAttribute('inert', '');
-
-    // Visual
-    hamburgerBtn.classList.remove('open');
-    overlay.classList.remove('is-open');
-    drawer.classList.remove('is-open');
-
-    // Return focus to hamburger
-    hamburgerBtn.focus();
-
-    // Refresh ScrollTrigger — position:fixed during menu-open
-    // can shift element positions; recalculate after restore
-    if (typeof ScrollTrigger !== 'undefined') {
-      requestAnimationFrame(() => ScrollTrigger.refresh());
+    window.scrollTo(0, savedScroll);
+    // Hide
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    mobileMenu.classList.remove('open');
+    mobileMenu.setAttribute('aria-hidden', 'true');
+    if (overlay) { overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true'); }
+    hamburger.focus();
+    // Re-scan for any reveal elements that entered view while menu was open
+    if (typeof window.registerReveal === 'function') {
+      requestAnimationFrame(() => {
+        const sels = '.reveal,.reveal-left,.reveal-right,.reveal-s,.reveal-pop';
+        document.querySelectorAll(sels).forEach(el => window.registerReveal(el));
+      });
     }
   }
 
-  function isOpen() {
-    return hamburgerBtn.getAttribute('aria-expanded') === 'true';
-  }
+  function isOpen() { return hamburger.classList.contains('open'); }
 
-  // ── Focus trap ────────────────────────────────────────────────────
-  function getFocusables() {
-    return Array.from(drawer.querySelectorAll(
-      'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )).filter(el => !el.closest('[inert]') && el.offsetParent !== null);
-  }
+  // Toggle on hamburger click
+  hamburger.addEventListener('click', () => isOpen() ? closeMenu() : openMenu());
 
-  drawer.addEventListener('keydown', e => {
-    if (!isOpen()) return;
-    const focusables = getFocusables();
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last  = focusables[focusables.length - 1];
-    if (e.key === 'Tab') {
-      if (e.shiftKey) {
-        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
-      } else {
-        if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
-      }
-    }
+  // Close button inside menu
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+
+  // Overlay click
+  if (overlay) overlay.addEventListener('click', closeMenu);
+
+  // Nav link clicks
+  mobileLinks.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.target;
+      closeMenu();
+      setTimeout(() => scrollTo(id), 60);
+    });
   });
 
-  // ── Escape key ────────────────────────────────────────────────────
+  // Escape key
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && isOpen()) closeMenu();
   });
 
-  // ── Toggle on hamburger click ─────────────────────────────────────
-  hamburgerBtn.addEventListener('click', () => {
-    isOpen() ? closeMenu() : openMenu();
-  });
-
-  // ── Close button ─────────────────────────────────────────────────
-  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-
-  // ── Overlay click ─────────────────────────────────────────────────
-  overlay.addEventListener('click', closeMenu);
-
-  // ── Mobile link click ─────────────────────────────────────────────
-  mobileLinks.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.target;
-      closeMenu();
-      // Small delay so scroll-lock is released before scrollTo
-      setTimeout(() => scrollTo(target), 50);
-    });
-  });
-
-  // ── Sync active state from desktop IntersectionObserver ──────────
-  // Watch for active class changes on desktop links and mirror to mobile
-  const desktopLinks = document.querySelectorAll('.nav-link[data-target]');
-  const activeObserver = new MutationObserver(() => {
-    desktopLinks.forEach(dl => {
-      const target = dl.dataset.target;
-      const mbl = drawer.querySelector(`.nav-mobile-link[data-target="${target}"]`);
-      if (mbl) mbl.classList.toggle('is-active', dl.classList.contains('active'));
-    });
-  });
-  desktopLinks.forEach(dl => {
-    activeObserver.observe(dl, { attributes: true, attributeFilter: ['class'] });
-  });
-
-  // ── Close on resize to desktop ────────────────────────────────────
+  // Close on desktop resize
   const mql = window.matchMedia('(min-width: 768px)');
   mql.addEventListener('change', e => { if (e.matches && isOpen()) closeMenu(); });
 
-  // ── Legacy global function (used by nav-mobile-cta onclick) ──────
+  // Expose for inline onclick on CTA
   window.mobileNav = function(id) {
     closeMenu();
-    setTimeout(() => scrollTo(id), 50);
+    setTimeout(() => scrollTo(id), 60);
   };
-
 })();
 
 // ── TICKER ─────────────────────────────────────────────────────────
@@ -2998,11 +2744,148 @@ navLinks.forEach(b=>b.addEventListener('click',()=>scrollTo(b.dataset.target)));
   track.innerHTML=html;
 })();
 
+// ── SCROLL REVEAL — SISTEMA CORREGIDO ─────────────────────────────
+//
+// BUGS ORIGINALES RESUELTOS:
+//
+// Bug 1 — Race condition con elementos dinámicos:
+//   .comite-card, .est-card y .ops-card se inyectan con innerHTML DESPUÉS
+//   de que el bloque configs.forEach ya escaneó el DOM. La solución es
+//   abandonar GSAP ScrollTrigger para estos elementos y usar
+//   IntersectionObserver nativo (igual que GeoDefender), que puede
+//   registrar elementos en cualquier momento sin necesidad de refresh().
+//
+// Bug 2 — st() evaluado una sola vez con viewport incorrecto:
+//   En mobile la barra de direcciones cambia la altura del viewport.
+//   GSAP calculaba el trigger con esa altura incorrecta y lo dejaba fijo.
+//   Con IntersectionObserver el threshold se recalcula en cada intersección,
+//   no en el momento de registro.
+//
+// Bug 3 — ScrollTrigger.refresh() antes de que las fuentes carguen:
+//   El refresh inmediato usaba posiciones pre-fuentes. Las fuentes display
+//   (Syne) afectan mucho el layout en mobile (más líneas = elementos más
+//   abajo). Ahora todo el setup espera a document.fonts.ready.
 
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// ── COUNT-UP HERO (página carga) ───────────────────────────────────
+// ── Mapa de configuraciones por clase ─────────────────────────────
+const REVEAL_CONFIGS = {
+  'reveal':       { from: { opacity: 0, y: 32 },              to: { opacity: 1, y: 0,       duration: 0.85, ease: 'power3.out' } },
+  'reveal-left':  { from: { opacity: 0, x: -48 },             to: { opacity: 1, x: 0,       duration: 0.80, ease: 'power3.out' } },
+  'reveal-right': { from: { opacity: 0, x: 48 },              to: { opacity: 1, x: 0,       duration: 0.80, ease: 'power3.out' } },
+  'reveal-s':     { from: { opacity: 0, y: 24, scale: 0.96 }, to: { opacity: 1, y: 0, scale: 1, duration: 0.90, ease: 'power2.out' } },
+  'reveal-pop':   { from: { opacity: 0, scale: 0.88 },        to: { opacity: 1, scale: 1,   duration: 0.70, ease: 'back.out(1.4)' } },
+};
+
+// ── Helper: stagger delay desde clases d1–d8 ──────────────────────
+function getRevealDelay(el) {
+  for (let i = 8; i >= 1; i--) {
+    if (el.classList.contains('d' + i)) return i * 0.08;
+  }
+  return 0;
+}
+
+// ── Helper: qué config corresponde a este elemento ────────────────
+function getRevealConfig(el) {
+  for (const cls of Object.keys(REVEAL_CONFIGS)) {
+    if (el.classList.contains(cls)) return REVEAL_CONFIGS[cls];
+  }
+  return null;
+}
+
+// ── Registra UN elemento con IntersectionObserver nativo ──────────
+//    FIX Bug 1: puede llamarse en cualquier momento, incluso después
+//    de que el DOM fue modificado por innerHTML dinámico.
+//    FIX Bug 2: threshold recalculado en cada intersección real,
+//    no en el momento del registro.
+function registerReveal(el) {
+  if (!prefersReduced && !el._revealRegistered) {
+    el._revealRegistered = true;
+    const cfg = getRevealConfig(el);
+    if (!cfg) return;
+
+    // Aplicar estado inicial via CSS directo (no GSAP.set para evitar
+    // que GSAP cachee posiciones incorrectas antes de fonts.ready)
+    el.style.opacity = '0';
+    if (cfg.from.y)     el.style.transform = `translateY(${cfg.from.y}px)`;
+    if (cfg.from.x)     el.style.transform = `translateX(${cfg.from.x}px)`;
+    if (cfg.from.scale && cfg.from.y) el.style.transform = `translateY(${cfg.from.y}px) scale(${cfg.from.scale})`;
+    if (cfg.from.scale && !cfg.from.y && !cfg.from.x) el.style.transform = `scale(${cfg.from.scale})`;
+
+    // threshold: 0.08 en mobile, 0.15 en desktop
+    // En mobile con threshold muy alto (>0.2) los elementos altos como
+    // las cards nunca alcanzan el porcentaje visible requerido.
+    const isMobile = window.innerWidth < 768;
+    const threshold = isMobile ? 0.05 : 0.12;
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const delay = getRevealDelay(el);
+          setTimeout(() => {
+            el.style.transition = `opacity ${cfg.to.duration}s ${cssEase(cfg.to.ease)}, transform ${cfg.to.duration}s ${cssEase(cfg.to.ease)}`;
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+          }, delay * 1000);
+          obs.disconnect();
+        }
+      });
+    }, {
+      threshold,
+      // rootMargin en mobile: empieza a detectar 20px antes del borde inferior
+      // del viewport — compensa la barra de direcciones que ocupa ~56-90px
+      rootMargin: isMobile ? '0px 0px -20px 0px' : '0px 0px -40px 0px'
+    });
+
+    obs.observe(el);
+  }
+}
+
+// ── Convierte easings de GSAP a CSS para las transiciones ─────────
+function cssEase(gsapEase) {
+  const map = {
+    'power3.out':      'cubic-bezier(0.22, 1, 0.36, 1)',
+    'power2.out':      'cubic-bezier(0.33, 1, 0.68, 1)',
+    'back.out(1.4)':   'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    'power3.out':      'cubic-bezier(0.22, 1, 0.36, 1)',
+  };
+  return map[gsapEase] || 'cubic-bezier(0.22, 1, 0.36, 1)';
+}
+
+// ── registerAll: escanea el DOM completo y registra todos los reveal ─
+//    Se llama dos veces: inmediatamente (para elementos estáticos)
+//    y después de fonts.ready (para elementos dinámicos y layout final).
+function registerAll() {
+  const sels = Object.keys(REVEAL_CONFIGS).map(c => '.' + c).join(',');
+  document.querySelectorAll(sels).forEach(el => registerReveal(el));
+}
+
+// ── API pública: registerReveal se exporta al scope global ─────────
+//    Los bloques COMITE, ESTRATEGIA y OPS llaman a esto después de
+//    inyectar su innerHTML, para registrar los elementos recién creados.
+window.registerReveal = registerReveal;
+
+// ── Registro inicial (elementos en HTML estático) ──────────────────
+if (!prefersReduced) {
+  // FIX Bug 3: NO hacer setup inmediato. Esperar fonts.ready para que
+  // Syne y DM Sans estén renderizadas y el layout sea el definitivo.
+  const doSetup = () => {
+    registerAll();
+  };
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(doSetup);
+  } else {
+    // Fallback para browsers sin document.fonts
+    window.addEventListener('load', doSetup);
+  }
+
+  // Seguro adicional: si fonts.ready tarda más de 800ms, setup igual
+  setTimeout(doSetup, 800);
+}
+
+// ── COUNT-UP ───────────────────────────────────────────────────────
 function countUp(el,target,dur,dec,pre,suf){
-  if(!el) return;
   let start=null;
   const tick=ts=>{
     if(!start)start=ts;
@@ -3016,6 +2899,21 @@ setTimeout(()=>{
   countUp($('hero-usd'),12.28,1800,2,'+','%');
   countUp($('hero-pesos'),16.66,1800,2,'+','%');
 },600);
+
+let trackDone=false;
+const tObs=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting&&!trackDone){
+    trackDone=true;
+    countUp($('track-usd'),12.28,1800,2,'+','%');
+    countUp($('track-pesos'),16.66,1800,2,'+','%');
+    countUp($('track-tbill'),2.21,1500,2,'+','%');
+    document.querySelectorAll('.bar-fill').forEach((b,i)=>{
+      setTimeout(()=>{b.style.width=b.dataset.w+'%';},i*130+200);
+    });
+    tObs.disconnect();
+  }
+},{threshold:.25});
+const ts=document.getElementById('track');if(ts)tObs.observe(ts);
 
 // ── CARTERA INTERACTIVE DONUT ──────────────────────────────────
 (function(){
@@ -3177,7 +3075,7 @@ setTimeout(()=>{
 (function(){
   const c=$('comite-grid');const delays=['d1','d2','d3','d4','d5'];
   c.innerHTML=TEAM.map((m,i)=>`
-    <div class="comite-card ${delays[i]}">
+    <div class="comite-card reveal-s ${delays[i]}">
       <div class="comite-photo">
         ${m.photo
           ? `<img src="${m.photo}" alt="${m.name}" loading="lazy">`
@@ -3191,31 +3089,41 @@ setTimeout(()=>{
         <div class="comite-spec">${m.spec}</div>
       </div>
     </div>`).join('');
-  // Animation handled by the unified staggerGrids system above
+  // FIX: registrar los elementos recién inyectados con el sistema nativo
+  // GSAP ScrollTrigger no los veía porque corrían después del configs.forEach
+  if (!prefersReduced) {
+    c.querySelectorAll('.reveal-s').forEach(el => window.registerReveal(el));
+  }
 })();
 
 // ── ESTRATEGIA ─────────────────────────────────────────────────────
 (function(){
   const c=$('est-grid');const delays=['d1','d2','d3','d4'];
   c.innerHTML=ESTRATEGIA.map((e,i)=>`
-    <div class="est-card ${delays[i]}">
+    <div class="est-card reveal-left ${delays[i]}">
       <div class="est-num">${e.n}</div>
       <div class="est-icon" style="background:${e.color}12;border-color:${e.color}30;">${e.svg}</div>
       <div class="est-title">${e.title}</div>
       <p class="est-desc">${e.desc}</p>
     </div>`).join('');
-  // Animation handled by the unified staggerGrids system above
+  // FIX: ídem COMITE — registrar post-inyección con el sistema nativo
+  if (!prefersReduced) {
+    c.querySelectorAll('.reveal-left').forEach(el => window.registerReveal(el));
+  }
 })();
 
 // ── OPS ────────────────────────────────────────────────────────────
 (function(){
   const c=$('ops-grid');const delays=['d1','d2','d3','d4','d5','d6'];
   c.innerHTML=OPS.map((o,i)=>`
-    <div class="ops-card ${delays[i]}">
+    <div class="ops-card reveal-pop ${delays[i]}">
       <div class="ops-val" style="color:${o.color}">${o.val}</div>
       <div class="ops-lbl">${o.lbl}</div>
     </div>`).join('');
-  // Animation handled by the unified staggerGrids system above
+  // FIX: ídem COMITE y ESTRATEGIA
+  if (!prefersReduced) {
+    c.querySelectorAll('.reveal-pop').forEach(el => window.registerReveal(el));
+  }
 })();
 
 // ── STAR FIELD CANVAS ─────────────────────────────────────────────
@@ -3223,43 +3131,35 @@ setTimeout(()=>{
   const canvas=$('hero-canvas');
   const ctx=canvas.getContext('2d');
 
-  // On mobile, reduce canvas work significantly
-  const isMob = window.innerWidth < 768;
-
   function seed(n){let x=Math.sin(n*9301+49297)*233280;return x-Math.floor(x);}
 
+  let stars = [];
+
   const resize=()=>{
-    // Use device pixel ratio capped at 1.5 for performance
-    const dpr = Math.min(window.devicePixelRatio || 1, isMob ? 1 : 1.5);
-    canvas.width = canvas.offsetWidth * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-    ctx.scale(dpr, dpr);
-    canvas._dpr = dpr;
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    // Regenerate stars with correct dimensions (fixes mobile where
+    // offsetWidth was 0 at parse time, placing all stars at x=0, y=0)
+    const W = canvas.offsetWidth, H = canvas.offsetHeight;
+    const n = window.innerWidth < 768 ? 55 : 80;
+    stars = Array.from({length: n}, (_, i) => ({
+      x:     seed(i*3)   * W,
+      y:     seed(i*3+1) * H,
+      r:     0.4 + seed(i*3+2) * 1.5,
+      a:     0.1 + seed(i*3+3) * 0.6,
+      phase: seed(i*3+4) * Math.PI * 2,
+      spd:   0.15 + seed(i*3+5) * 0.5,
+      hue:   seed(i*3+6) > .5 ? '180,210,255' : '220,200,255',
+    }));
   };
-  resize();
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resize, 200);
-  }, {passive:true});
-
-  // Fewer particles on mobile
-  const starCount = isMob ? 40 : 80;
-  const warpCount = isMob ? 50 : 120;
-
-  // Stars
-  const stars=Array.from({length:starCount},(_, i)=>({
-    x:seed(i*3)*canvas.offsetWidth,
-    y:seed(i*3+1)*canvas.offsetHeight,
-    r:0.4+seed(i*3+2)*1.5,
-    a:0.1+seed(i*3+3)*0.6,
-    phase:seed(i*3+4)*Math.PI*2,
-    spd:0.15+seed(i*3+5)*0.5,
-    hue:seed(i*3+6)>.5?'180,210,255':'220,200,255',
-  }));
+  // rAF ensures offsetWidth/Height are real layout values (not 0)
+  requestAnimationFrame(resize);
+  let _rsz;
+  window.addEventListener('resize', () => { clearTimeout(_rsz); _rsz = setTimeout(resize, 200); }, {passive:true});
 
   // Warp lines
-  let warp=Array.from({length:warpCount},(_, i)=>({
+  const N=120;
+  let warp=Array.from({length:N},(_, i)=>({
     ox:(seed(i*7)-0.5)*2,
     oy:(seed(i*7+1)-0.5)*2,
     z:seed(i*7+2),
@@ -3269,24 +3169,10 @@ setTimeout(()=>{
   }));
 
   let t=0;
-  let lastFrame = 0;
-  // On mobile target ~30fps, desktop 60fps
-  const fpsInterval = isMob ? 1000/30 : 1000/60;
-
-  // Pause when tab not visible
-  let paused = false;
-  document.addEventListener('visibilitychange', () => { paused = document.hidden; });
-
-  const draw=(ts)=>{
-    requestAnimationFrame(draw);
-    if (paused) return;
-    const elapsed = ts - lastFrame;
-    if (elapsed < fpsInterval) return;
-    lastFrame = ts - (elapsed % fpsInterval);
-
-    const W=canvas.offsetWidth, H=canvas.offsetHeight;
+  const draw=()=>{
+    const W=canvas.width,H=canvas.height;
     ctx.clearRect(0,0,W,H);
-    t+=elapsed/1000;
+    t+=1/60;
 
     // Static field
     stars.forEach(s=>{
@@ -3297,12 +3183,7 @@ setTimeout(()=>{
       ctx.fill();
     });
 
-    if(isMob){
-      // On mobile skip warp streaks entirely — stars only
-      return;
-    }
-
-    // Warp streaks (desktop only)
+    // Warp streaks
     const cx=W/2,cy=H/2;
     warp.forEach(w=>{
       w.z-=w.spd*0.016;
@@ -3325,8 +3206,10 @@ setTimeout(()=>{
       ctx.lineWidth=w.sz*brightness;
       ctx.stroke();
     });
+
+    requestAnimationFrame(draw);
   };
-  requestAnimationFrame(draw);
+  draw();
 })();
 
 // ── FORM ───────────────────────────────────────────────────────────
@@ -3337,225 +3220,6 @@ $('contact-form').addEventListener('submit',e=>{
   s.style.display='block';
   s.style.animation='fadeUp .5s ease forwards';
 });
-
-// ══════════════════════════════════════════════════════════════════
-// SCROLL ANIMATIONS
-//
-// Architecture: CSS hides elements immediately on page load (no flash).
-// GSAP only handles the entrance animation when element enters viewport.
-// This means initAnimations() can run immediately — no need to wait
-// for fonts, no need for gsap.set(opacity:0) (CSS already did it).
-//
-// Mobile fixes applied:
-//   • ScrollTrigger.config({ ignoreMobileResize:true }) — stops iOS
-//     address-bar height changes from invalidating all triggers
-//   • "bottom bottom" trigger — fires when bottom of element hits
-//     bottom of viewport, works for any element height
-//   • initAnimations() runs in ONE rAF after DOMContentLoaded —
-//     fast enough that triggers are ready before user scrolls
-// ══════════════════════════════════════════════════════════════════
-gsap.registerPlugin(ScrollTrigger);
-ScrollTrigger.config({ ignoreMobileResize: true });
-
-const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-if (!prefersReduced) {
-
-  // Run in ONE rAF — fast, but after initial layout is complete
-  requestAnimationFrame(initAnimations);
-
-  function initAnimations() {
-
-    const mob = window.innerWidth < 768;
-
-    // Mobile: "bottom bottom" = fires when element's bottom edge
-    // reaches viewport bottom — works for any element height.
-    // Desktop: "top 88%" = fires when element top is near bottom.
-    const ST = mob ? 'bottom bottom' : 'top 88%';
-
-    // ── Helpers ──────────────────────────────────────────────────
-
-    // Single element reveal
-    function show(el, vars, trigger, start) {
-      if (!el) return;
-      // Note: NO gsap.set needed — CSS already set opacity:0
-      ScrollTrigger.create({
-        trigger: trigger || el,
-        start: start || ST,
-        once: true,
-        onEnter: () => gsap.to(el, { opacity: 1, ...vars, overwrite: 'auto' }),
-      });
-    }
-
-    // Group of elements with stagger delay
-    function showGroup(els, fromVars, toVars, triggerEl, start) {
-      if (!els || !els.length) return;
-      // Set initial transform (opacity already 0 from CSS)
-      els.forEach(el => {
-        if (fromVars.x !== undefined) gsap.set(el, { x: fromVars.x });
-        if (fromVars.y !== undefined) gsap.set(el, { y: fromVars.y });
-        if (fromVars.scale !== undefined) gsap.set(el, { scale: fromVars.scale });
-      });
-      ScrollTrigger.create({
-        trigger: triggerEl || els[0],
-        start: start || ST,
-        once: true,
-        onEnter: () => gsap.to(els, {
-          opacity: 1,
-          x: 0, y: 0, scale: 1,
-          ...toVars,
-          overwrite: 'auto',
-        }),
-      });
-    }
-
-    // ── 1. Section headers ────────────────────────────────────────
-    document.querySelectorAll('.section-label').forEach(el =>
-      show(el, { y: 0, duration: 0.5, ease: 'power2.out' },
-               el, ST));
-
-    document.querySelectorAll('.section-title').forEach(el => {
-      gsap.set(el, { y: mob ? 16 : 22 });
-      show(el, { y: 0, duration: mob ? 0.55 : 0.7, ease: 'power3.out' });
-    });
-
-    document.querySelectorAll('.section-sub').forEach(el =>
-      show(el, { y: 0, duration: 0.5, ease: 'power2.out' }));
-
-    // ── 2. Track Record ───────────────────────────────────────────
-    const trackHero  = document.querySelector('#track .track-hero');
-    const trackMinis = document.querySelectorAll('#track .track-mini');
-    const barFills   = document.querySelectorAll('#track .bar-fill');
-    const compareCard = document.querySelector('#track .compare-card');
-    const feeCard    = document.querySelector('#track .fee-card');
-
-    if (trackHero) {
-      gsap.set(trackHero, { y: mob ? 20 : 32 });
-      ScrollTrigger.create({
-        trigger: trackHero, start: ST, once: true,
-        onEnter: () => {
-          gsap.to(trackHero, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', overwrite: 'auto' });
-          countUp($('track-usd'),   12.28, 1600, 2, '+', '%');
-          countUp($('track-pesos'), 16.66, 1600, 2, '+', '%');
-          countUp($('track-tbill'),  2.21, 1400, 2, '+', '%');
-          barFills.forEach((b, i) =>
-            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 110 + 300));
-        },
-      });
-    }
-    if (trackMinis.length) showGroup(trackMinis, { x: 20 }, { x: 0, duration: 0.55, ease: 'power3.out', stagger: 0.08 }, trackHero);
-    if (compareCard) show(compareCard, { y: 0, duration: 0.6, ease: 'power2.out' });
-    if (feeCard)     show(feeCard,     { y: 0, duration: 0.6, ease: 'power2.out' });
-
-    // ── 3. Cartera ────────────────────────────────────────────────
-    const donutWrap  = document.querySelector('#cartera .donut-wrap');
-    const legendRows = document.querySelectorAll('#cartera .legend-row');
-    const barFillsC  = document.querySelectorAll('#cartera .legend-bar-fill');
-
-    if (donutWrap) {
-      gsap.set(donutWrap, { scale: 0.9 });
-      ScrollTrigger.create({
-        trigger: donutWrap, start: ST, once: true,
-        onEnter: () => {
-          gsap.to(donutWrap, { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)', overwrite: 'auto' });
-          barFillsC.forEach((b, i) =>
-            setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 40 + 400));
-        },
-      });
-    }
-    if (legendRows.length) {
-      legendRows.forEach(el => gsap.set(el, { x: -16 }));
-      showGroup(legendRows, { x: -16 }, { x: 0, duration: 0.45, ease: 'power3.out', stagger: 0.04 }, donutWrap);
-    }
-
-    // ── 4. Equipo ─────────────────────────────────────────────────
-    const equipoHero  = document.querySelector('#equipo .equipo-hero');
-    const equipoStats = document.querySelectorAll('#equipo .equipo-stat');
-    const comiteCards = document.querySelectorAll('#equipo .comite-card');
-    const comiteGrid  = document.querySelector('#equipo .comite-grid');
-
-    if (equipoHero) { gsap.set(equipoHero, { y: 22 }); show(equipoHero, { y: 0, duration: 0.8, ease: 'power3.out' }); }
-    if (equipoStats.length) showGroup(equipoStats, { y: 14 }, { y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.07 }, equipoHero);
-    if (comiteCards.length) {
-      comiteCards.forEach(el => gsap.set(el, { y: 16, scale: 0.97 }));
-      showGroup(comiteCards, { y: 16, scale: 0.97 }, { y: 0, scale: 1, duration: 0.55, ease: 'power3.out', stagger: 0.07 }, comiteGrid || comiteCards[0]);
-    }
-
-    // ── 5. Estrategia ─────────────────────────────────────────────
-    const estCards = document.querySelectorAll('#estrategia .est-card');
-    const estGrid  = document.querySelector('#estrategia .est-grid');
-    if (estCards.length) {
-      estCards.forEach(el => gsap.set(el, { y: 20, scale: 0.95 }));
-      showGroup(estCards, { y: 20, scale: 0.95 }, { y: 0, scale: 1, duration: 0.6, ease: 'power3.out', stagger: 0.1 }, estGrid || estCards[0]);
-    }
-
-    // ── 6. Operatoria ─────────────────────────────────────────────
-    const opsCards = document.querySelectorAll('#operatoria .ops-card');
-    const opsGrid  = document.querySelector('#operatoria .ops-grid');
-    const feeBox   = document.querySelector('#operatoria .fee-box');
-    if (opsCards.length) {
-      opsCards.forEach(el => gsap.set(el, { scale: 0.88 }));
-      showGroup(opsCards, { scale: 0.88 }, { scale: 1, duration: 0.55, ease: 'back.out(1.4)', stagger: 0.07 }, opsGrid || opsCards[0]);
-    }
-    if (feeBox) show(feeBox, { y: 0, duration: 0.6, ease: 'power2.out' });
-
-    // ── 7. Acceso ─────────────────────────────────────────────────
-    const stepCards = document.querySelectorAll('#acceso .step-card');
-    const stepsEl   = document.querySelector('#acceso .steps');
-    const storeRow  = document.querySelector('#acceso .store-row');
-    if (stepCards.length) {
-      stepCards.forEach(el => gsap.set(el, { x: mob ? -14 : -22 }));
-      showGroup(stepCards, { x: mob ? -14 : -22 }, { x: 0, duration: 0.6, ease: 'power3.out', stagger: 0.1 }, stepsEl || stepCards[0]);
-    }
-    if (storeRow) show(storeRow, { y: 0, duration: 0.6, ease: 'back.out(1.2)' });
-
-    // ── 8. Contacto ───────────────────────────────────────────────
-    const contactCard = document.querySelector('#contacto .contact-card');
-    if (contactCard) { gsap.set(contactCard, { y: 22 }); show(contactCard, { y: 0, duration: 0.8, ease: 'power3.out' }); }
-
-    // ── 9. Grupo IEB pills ────────────────────────────────────────
-    const pills       = document.querySelectorAll('#grupo-ieb .ieb-logo-pill');
-    const pillParent  = document.querySelector('#grupo-ieb');
-    if (pills.length) {
-      pills.forEach(el => gsap.set(el, { y: 10, scale: 0.94 }));
-      showGroup(pills, { y: 10, scale: 0.94 }, { y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.2)', stagger: 0.05 }, pillParent);
-    }
-
-    // ── 10. Generic .reveal* fallback (not covered above) ─────────
-    const alreadyCovered = new Set([
-      ...document.querySelectorAll(
-        '#track .track-hero, #track .track-mini, #track .compare-card, #track .fee-card,' +
-        '#cartera .donut-wrap, #cartera .legend-row,' +
-        '#equipo .equipo-hero, #equipo .equipo-stat, #equipo .comite-card,' +
-        '#estrategia .est-card, #operatoria .ops-card, #operatoria .fee-box,' +
-        '#acceso .step-card, #acceso .store-row,' +
-        '#contacto .contact-card, #grupo-ieb .ieb-logo-pill,' +
-        '.section-title, .section-label, .section-sub'
-      )
-    ]);
-
-    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-s, .reveal-pop').forEach(el => {
-      if (alreadyCovered.has(el)) return;
-      show(el, { y: 0, x: 0, scale: 1, duration: 0.65, ease: 'power3.out' });
-    });
-
-    ScrollTrigger.refresh();
-
-  } // end initAnimations
-
-  // Re-init triggers on orientation change
-  window.addEventListener('orientationchange', () => {
-    setTimeout(() => ScrollTrigger.refresh(), 500);
-  });
-
-  // Refresh after fonts load (doesn't need to block init anymore,
-  // but corrects any trigger positions affected by font metrics)
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => ScrollTrigger.refresh());
-  }
-
-} // end if(!prefersReduced)
-
 </script>
 
 
